@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title></title>
+    <style>
+        body,
+        html {
+            background-color: rgba(0, 0, 0, 0)
+        }
+
+        #rootWrap {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .call-user-info {
+            display: flex;
+            align-items: center;
+            padding: .4rem 0 0 .15rem;
+            color: #fff;
+            position: relative;
+            z-index: 5
+        }
+
+        .call-user-info .photo {
+            width: .64rem;
+            height: .64rem;
+            overflow: hidden;
+            border-radius: 999px;
+            margin-right: .1rem;
+        }
+
+        .call-user-info .photo img {
+            width: .64rem;
+            display: block;
+        }
+
+        .call-user-info .right h3 {
+            font-size: .8rem;
+        }
+
+        .call-user-info .right p {
+            font-size: .8rem;
+        }
+
+        .call-time {
+            position: absolute;
+            bottom: 1.5rem;
+            text-align: center;
+            color: #fff;
+            left: 0;
+            right: 0;
+            font-size: .8rem;
+            z-index: 5
+        }
+
+        .call-btns {
+            padding: .39rem;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: .52rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 5
+        }
+
+        .call-btns a {
+            width: 1.64rem;
+            flex-shrink: 0;
+            text-align: center;
+            color: #fff;
+            font-size: 1.16rem;
+        }
+
+        .call-btns a img {
+            display: block;
+            margin-bottom: .08rem;
+            width: 100%;
+            height: auto;
+        }
+
+        .call-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, .2);
+            z-index: 4
+        }
+
+        .call-persion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 2
+        }
+
+        .call-persion img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <!--
+        callStatus===1、拨打电话，应该显示接听电话人的头像
+        callStatus===3、接听电话，应该显示拨打电话人的头像
+    -->
+    <div id="rootWrap" v-cloak>
+        <div class="call-user-info" v-if="callStatus!==2">
+            <div class="photo" v-if="callStatus===1"><img :src="headImg3"></div>
+            <div class="photo" v-if="callStatus===3"><img :src="headImg1"></div>
+            <div class="right">
+                <h3 v-if="callStatus===1">{{userName3}}</h3>
+                <h3 v-if="callStatus===3">{{userName1}}</h3>
+                <p v-if="callStatus===1">正在等待对方接听</p>
+                <p v-if="callStatus===3">邀请你视频通话</p>
+            </div>
+        </div>
+        <time class="call-time" v-if="callStatus===2">通话时间：00:05:32</time>
+        <div class="call-btns" :style="callStatus===1 ? 'justify-content:center' : ''">
+            <!-- <a v-if="callStatus===2" @click="doMeiyan">
+            <img src="meiyan-on.png" v-show="meiyan">
+            <img src="meiyan-close.png" v-show="!meiyan">
+                美颜
+            </a> -->
+            <a v-if="callStatus===2" @click="doJingyin">
+                <img src="call3-on.png" v-show="!jingyin">
+                <img src="call3-close.png" v-show="jingyin"> 静音
+            </a>
+            <a v-if="callStatus===3" @click="hangup">
+                <img src="call2.png">拒绝
+            </a>
+            <a v-if="callStatus===2" @click="hangup">
+                <img src="call2.png">挂断
+            </a>
+            <a v-if="callStatus===1" @click="hangup">
+                <img src="call2.png">取消
+            </a>
+            <a v-if="callStatus===2" @click="doYangshengqi">
+                <img src="call1-on.png" v-show="yangshengqi">
+                <img src="call1-close.png" v-show="!yangshengqi"> 扬声器
+            </a>
+            <a v-if="callStatus===3" @click="accept">
+                <img src="call4.png">接听
+            </a>
+        </div>
+        <div class="call-mask" v-if="callStatus!==2"></div>
+        <!--对方的照片-->
+        <div class="call-persion" v-if="callStatus===1">
+            <img :src="headImg3">
+        </div>
+        <!--自己的照片-->
+        <div class="call-persion" v-if="callStatus===3">
+            <img :src="headImg1">
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/hope/vue.min.js"></script>
+<script type="text/javascript">
+var rong;
+apiready = function(){
+    rong = api.require('rongCloud2');
+    //设置一些用户主动点击才发生的事件
+    initVue();
+    //按返回键会挂电话
+    api.addEventListener({
+        name: 'keyback'
+        }, function(ret, err) {
+            api.execScript({
+                frameName: 'showVideo_frm',
+                script: 'window.rootVue.hangup();'
+            });
+    });
+}
+
+    //初始化vue
+function initVue() {
+    'use strict';
+    //Vue.prototype.func = func;
+    window.rootVue = new Vue({
+        el: '#rootWrap',
+        data: {
+            userName1: '',
+            headImg1: '',
+            userName3: '',
+            headImg3: '',
+            content: '',
+            uid: api.pageParam.uid,
+            targetId: api.pageParam.targetId,
+            callStatus: api.pageParam.callStatus, // 1拨过去  2接听中  3待接收
+            callId: api.pageParam.callId,
+            jingyin: false, //静音
+            yangshengqi: true, //扬声器
+        },
+        //初始化
+        created: function() {
+            let that = this;
+            rong.getCallSession(function(ret) {
+                that.userName1 = ret.extra.userName1; //JSON.parse(ret.extra).userName1;   //拨打电话人的昵称
+                that.headImg1 = ret.extra.headImg1; // JSON.parse(ret.extra).headImg1;     //拨打电话人的头像
+                that.userName3 = ret.extra.userName3; // JSON.parse(ret.extra).userName3;   //接听电话人的昵称
+                that.headImg3 = ret.extra.headImg3; // JSON.parse(ret.extra).headImg3;     //接听电话人的昵称
+                console.log(that.userName1 + " ret.extra.userName1 : " + ret.extra.userName1);
+                console.log(that.headImg1 + " ret.extra.headImg1 : " + ret.extra.headImg1);
+                console.log(that.userName3 + " ret.extra.userName3 : " + ret.extra.userName3);
+                console.log(that.headImg3 + " ret.extra.headImg3 : " + ret.extra.headImg3);
+            });
+        },
+        watch: {
+            callStatus: function(val) {
+                if (val === 2) {
+                    this.initJingyinYangshengqi();
+                }
+            }
+        },
+        methods: {
+                ////////////////////////////注意：Android如果设置对方窗口时，需要监听到 remoteUserDidJoin 事件之后设置，否则可能导致窗口无法显示的问题
+                //打开视频,showVideo_win的代码
+                //uid自己的id，uid2别人的id
+                showVideo: function(uid1, uid2) {
+                    //打开自己的视频
+                    rong.setVideoView({
+                        rect: {
+                            x: api.winWidth - 130,
+                            y: api.safeArea.top + 20,
+                            w: 110,
+                            h: 180
+                        },
+                        userId: uid1,
+                        bg: '#ff0000',
+                        renderModel: 'hidden',
+                        fixed: true
+                    });
+                    //打开他人的视频
+                    rong.setVideoView({
+                        rect: {
+                            x: 0,
+                            y: 0,
+                            w: 100, //api.winWidth,
+                            h: 100, //api.winHeight
+                        },
+                        userId: uid2,
+                        bg: '#ff0000',
+                        renderModel: 'hidden',
+                        fixed: true
+                    });
+                },
+                //重新打开视频,showVideo_win的代码
+                resetVideoView: function(uid) {
+                    rong.resetVideoView({
+                        userId: uid
+                    });
+                },
+                initJingyinYangshengqi: function() {
+                    var that = this;
+                    //jingyin初始状态
+                    rong.isMuted(function(ret) {
+                        console.log(api.systemType + ' 静音:' + ret.isMuted)
+                        that.jingyin = ret.isMuted;
+                    });
+                    //yangshengqi初始状态
+                    rong.speakerEnabled(function(ret) {
+                        console.log(api.systemType + ' 扬声器:' + ret.speakerEnabled)
+                        that.yangshengqi = ret.speakerEnabled;
+                    });
+                },
+                //静音开关
+                doJingyin: function() {
+                    var that = this;
+                    that.jingyin = !that.jingyin;
+                    rong.setMuted({
+                        muted: that.jingyin
+                    }, function(ret) {
+                        if (!ret.status) {
+                            alert('设置静音失败');
+                            that.jingyin = false;
+                        }
+                    });
+                },
+                //扬声器开关
+                doYangshengqi: function() {
+                    var that = this;
+                    that.yangshengqi = !that.yangshengqi;
+                    rong.setSpeakerEnabled({
+                        speakerEnabled: that.yangshengqi
+                    }, function(ret) {
+                        if (!ret.status) {
+                            alert('设置扬声器失败');
+                            that.yangshengqi = false;
+                        }
+                    });
+                },
+                setCallStatus: function(n) {
+                    this.callStatus = n
+                },
+                hangup: function() {
+                    rong.hangup();
+                    api.closeWin();
+                },
+                accept: function() {
+                    var that = this;
+                    rong.accept({
+                        mediaType: 'video',
+                        callId: that.callId
+                    });
+                    that.setCallStatus(2);
+                    rong.getCallSession(function(ret) {
+                        api.execScript({
+                            name: 'showVideo_frm',
+                            script: 'window.rootVue.resetVideoView("' + ret.targetId + '");'
+                        });
+                    });
+                }
+            },
+        mounted: function(){}
+    });
+}
+</script>
+
+</html>

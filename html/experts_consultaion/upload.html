@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../css/views.css">
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style>
+        body {
+            background-color: #FFFFFF;
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+        }
+        .setdiv{
+            background:-webkit-linear-gradient(left top,rgba(122,195,248,1),rgba(246,227,247,1),rgba(255,239,203,1));
+            margin:2% 2% 0 2%;
+            text-align:center;
+            border-radius: 10px;
+            height:77%;
+            width:96%;
+            display:inline-block;
+            position: absolute;
+        }
+        button {
+            background-color: skyblue;
+            color: #FFFFFF;
+            overflow: hidden;
+            border: none;
+            outline: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        @media(max-width: 360px) {
+            .form-control {
+                font-size: 10px;
+                padding: 0 5px;
+            }
+        }
+        @media(max-width: 320px) {
+            .col-xs-6 {
+                padding: 0 5px;
+            }
+        }
+        input[type=text]{
+          border: none;
+        }
+        /*图片*/
+        img{
+            position: relative;
+        }
+        .float{
+            float:left;
+            width : 100;
+            height: 100;
+            overflow: hidden;
+            border: 1px solid #CCCCCC;
+            border-radius: 10px;
+            padding: 5px;
+            margin: 5px;
+        }
+        .result{
+            width: 100px;
+            height: 100px;
+            box-sizing: border-box;
+            display: none;
+        }
+        /*放大图片*/
+        .imgmask{
+            display: none;
+            top: 0;
+            right: 0;
+            bottom: 0;
+
+            z-index: 200;
+            background: rgba(0,0,0,.5);
+        }
+        .bigImg{
+        }
+    </style>
+</head>
+<body>
+    <header id = "header" class="aui-bar aui-bar-nav">
+        <div class="aui-pull-left aui-btn" onclick = "javascript:api.closeWin({name: 'upload'});">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style = "position: absolute; left: 50%; transform: translateX(-50%);">上传病人资料</div>
+    </header>
+    <div class="aui-bar aui-bar-btn" style="margin:2% auto;width:80%;">
+        <div class="aui-bar-btn-item">上传资料</div>
+        <div class="aui-bar-btn-item aui-active">下载资料</div>
+    </div>
+    <div class="setdiv" id="div1" style = "text-align:center;">
+        <input id="pt_id1"  type="text" placeholder="病人ID" style="margin:2% auto;width:50%;height:50px;background:#fff;border-radius:10px;text-align:center;" value = "">
+        <button  name="upload" style="margin 0 20px 0 0;" onclick = "zengjiaImage()" >打开图片</button>
+        <button  name="upload" style="margin 0 0 0 20px;" onclick = "isUserExist()" >上传</button>
+        <li style = "float:left;margin:10px 10%;width:80%;height:80%;text-align:center;">
+            <div class="aui-list-item-input" id="containter1">
+            </div>
+        </li>
+    </div>
+    <div class="setdiv" id="div2" style = "text-align:center;">
+        <input id="pt_id2"  type="text" placeholder="病人ID" style="margin:2% auto;width:50%;height:50px%;background:#fff;border-radius:10px;text-align:center;" value = "">
+        <button  name="upload" onclick = "getPatientData()" >浏览病人的资料图片</button>
+        <li style = "float:left;margin:10px 10%;width:80%;height:80%;text-align:center;">
+            <div class="aui-list-item-input" id="containter2">
+            </div>
+        </li>
+    </div>
+    <!--图片遮罩层-->
+    <div class="imgmask" id="imgmask" style = "width:100%;height:100%;position:fixed;" onclick="disappear()">
+    <img src="" alt="" class="bigImg" id="bigImg"></div>
+</body>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery.min.js"></script>
+<script type="text/javascript" src="../../script/hope/jdate.min.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/aui-tab.js" ></script>
+<script type="text/javascript" src="../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../script/aui-dialog.js" ></script>
+<script type="text/javascript" src="../../script/zoom.js"></script>
+<script type="text/javascript">
+var UIAlbumBrowser;
+var ajaxCount=0,timeInterval,fileArray = [];
+var i = 0;
+var imgarr = [];
+var imgarrMaxLength = 12;
+let toast = new auiToast();
+apiready = function() {
+    UIAlbumBrowser = api.require('UIAlbumBrowser');
+    $api.fixStatusBar($api.byId('header'));
+    api.parseTapmode();
+};
+
+
+var bar = document.querySelectorAll(".aui-bar-btn");
+if(bar){
+    for(var i=0; i<bar.length;i++){
+        var d = bar[i];
+        var tab = new auiTab({
+            element:bar[i],
+            repeatClick:true
+        },function(ret){
+                if(ret.index==1){
+                    $("#div2").css('display','none');
+                    $("#div1").css('display','block');
+                }
+                if(ret.index==2){
+                    $("#div1").css('display','none');
+                    $("#div2").css('display','block');
+                }
+        });
+    }
+}
+
+function addImg(element,path){
+    var imgdiv;
+    var containterdiv = element;
+    imgdiv = document.createElement('div');
+    imgdiv.innerHTML = '<div class="result" onclick="enlargePic(this)"><img src="'+path+'" alt=""/></div>';
+    imgdiv['className'] = 'float';
+    imgdiv.getElementsByTagName('img')[0].onload = function(){
+        var nowHeight = ReSizePic(this); //设置图片大小
+        this.parentNode.style.display = 'block';
+        var oParent = this.parentNode;
+        if(nowHeight){
+            //长图垂直居中
+            oParent.style.paddingTop = (oParent.offsetHeight - nowHeight)/2 + 'px';
+        }
+        else {
+            //长图水平居中
+            oParent.style.paddingLeft = (oParent.offsetHeight - this.width)/2 + 'px';
+        }
+    }
+    containterdiv.appendChild(imgdiv);
+}
+
+
+//监听用户输入的患者ID是否存在
+function isUserExist(){
+    if(imgarr.length>0)
+    {
+        var pt_id = "";//为了使该变量的类型变成string
+        pt_id =($api.byId("pt_id1")).value;
+        //判断输入是否空白
+        if(pt_id.replace(/\s*/g,"") != "")
+        {
+            var client = new Resource();
+            var Model = client.Factory("tb_patient");
+            Model.query({
+                filter:{
+                    where:{
+                        "pt_id":pt_id,
+                    },
+                    fields:["pt_id"],
+                }
+                },function (ret,err) {
+                    if(ret[0] && ret[0]["pt_id"])
+                    {
+                        //选择图片后上传
+                        fileUpload();
+                    }
+                    else {
+                        toast.fail({
+                            title:"患者ID不存在",
+                            duration:2000
+                        });
+                    }
+                });
+       }
+       else{
+           toast.fail({
+               title:"患者ID不可为空",
+               duration:2000
+           });
+           return;
+       }
+   }
+   else {
+       toast.fail({
+           title:"您还未选择图片",
+           duration:2000
+       });
+   }
+}
+
+//打开图片
+function zengjiaImage(){
+    UIAlbumBrowser.imagePicker({
+        max: 9,
+        styles: {
+            bg: '#FFFFFF',
+            //cameraImg: 'widget://res/cameraImg.png',
+            mark: {
+                position: 'top_right',
+                size: 20
+            },
+            nav: {
+                bg: '#FFFFFF',
+                cancelColor: '#000000',
+                cancelSize: 16,
+                nextStepColor: '#000000',
+                nextStepSize: 16
+            },
+            thumbnail: { //（可选项）返回的缩略图配置，**建议本图片不要设置过大** 若已有缩略图，则使用已有的缩略图。若要重新生成缩略图，可先调用清除缓存接口api.clearCache()。
+                w: 100, //（可选项）数字类型；返回的缩略图的宽；默认：原图的宽度
+                h: 100 //（可选项）数字类型；返回的缩略图的宽；默认：原图的高度
+            }
+        },
+        animation: true,
+    }, function(ret) {
+        //console.log(imgarr);
+        if (ret.eventType == 'nextStep') {
+            if (ret.list && ret.list.length > 0) {
+                //imgarr = imgarr.concat(ret.list)
+            }
+            UIAlbumBrowser.closePicker();
+            for(var n = 0;n<ret.list.length;n++)
+            {
+                //console.log("   length:  "+imgarr.length);
+                //图片数量不能超过imgarrMaxLength
+                imgarr.push(ret.list[n]);
+                if(imgarr.length>imgarrMaxLength)
+                {
+                    toast.hide();
+                    toast.fail({
+                        title:"一次最多只能上传12张图片",
+                        duration:2000
+                    });
+                    imgarr.slice(0,12);
+                    //console.log(imgarr);
+                    break;
+                }
+                else {
+                    addImg(document.getElementById('containter1'),ret.list[n].path);
+                }
+            }
+        }
+        if (ret.originalPath && ret.originalPath.length > 0) {
+            if (ret.originalPath && ret.originalPath.length > 0) {
+                //imgarr = imgarr.concat(ret.originalPath)
+            }
+            UIAlbumBrowser.closePicker();
+            for(var n = 0;n<ret.originalPath.length;n++)
+            {
+                //console.log("   length:  "+imgarr.length);
+                //图片数量不能超过imgarrMaxLength
+                imgarr.push(ret.originalPath[n]);
+                if(imgarr.length>imgarrMaxLength)
+                {
+                    toast.hide();
+                    toast.fail({
+                        title:"一次最多只能上传12张图片",
+                        duration:2000
+                    });
+                    imgarr.slice(0,12);
+                    //console.log(imgarr);
+                    return;
+                }
+                else {
+                    addImg(document.getElementById('containter1'),ret.originalPath[n].path);
+                }
+            }
+        }
+    });
+}
+
+
+    //apicloud云数据库上传文件，需要先上传到_file表
+    function fileUpload()
+    {
+        toast.hide();
+        toast.loading({
+            title:"资料上传中",
+            duration:600000
+            },function(ret){
+        });
+        var client = new Resource();
+        var File = client.Factory("file");
+        for(var n = 0;n<imgarr.length;n++)
+        {
+            File.save({file:{
+                isFile:true,
+                path:imgarr[n].path,        //文件路径
+                values:{filename:imgarr[n].path.substr((imgarr[n].path).lastIndexOf('/')+1)}   //文件名
+            }},function(ret,err){
+                //fileArray.push({id: ret.id,name: ret.name,url: ret.url});
+                fileArray.push(ret.url);
+                ajaxCount++;
+                //console.log(ajaxCount);
+            });
+        }
+        timeInterval = setInterval(function(){
+            if(ajaxCount == imgarr.length)
+            {
+                clearInterval(timeInterval);
+                //console.log(JSON.stringify(fileArray));
+                //选择好病人id后，往病人资料表插入一行数据，其中一列属性为file数组
+                var pt_id = "";//为了使该变量的类型变成string
+                pt_id =($api.byId("pt_id1")).value;
+                insertUpdate("tb_patient_data",{values:{pt_id:pt_id,data_picture:fileArray}});
+            }
+        },1000)
+    }
+
+    //往指定表插入一行数据
+    //className:表名称  insertFields:插入列
+    function insertUpdate(className,insertFields)
+    {
+        var app = {};
+        getAppConfig(app);
+        api.ajax({
+            url: 'https://d.apicloud.com/mcm/api/'+className,
+            method: 'post',
+            headers:
+            {
+                "X-APICloud-AppId": app.appId,
+                "X-APICloud-AppKey": app.encryptAppKey
+            },
+            data: insertFields
+        }, function(ret, err) {
+            toast.hide();
+            toast.success({
+                title:"上传成功",
+                duration:2000
+            });
+        });
+    }
+
+    //读取病人资料表的图片并显示，由于Date列限制尚未增加查询特定时间的限制
+    function getPatientData(){
+        var pt_id = "";//为了使该变量的类型变成string
+        pt_id =($api.byId("pt_id2")).value;
+        var client = new Resource();
+        var Model = client.Factory("tb_patient_data");
+        Model.query({filter:{
+            fields: {data_picture:true},
+            where:{pt_id:pt_id},
+            skip:0,
+            limit:20,
+            //数据云查询有相关参数
+        }}, function (ret,err) {
+            document.getElementById('containter2').innerHTML = "";
+            let picCount = "",picTotalCount = 0;
+            for(let m = 0;m<ret.length;m++)
+            {
+                picCount = ret[m]["data_picture"].length;
+                for(let n = 0;n<picCount;n++)
+                {
+                    picTotalCount = picTotalCount+1;
+                    if(picTotalCount<=imgarrMaxLength)
+                    {
+                        api.imageCache({
+                            policy:"cache_else_network",
+                            url: ret[m]["data_picture"][n],
+                            thumbnail:true
+                        }, function(ret, err) {
+                            addImg(document.getElementById('containter2'),ret["url"]);
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    //点击查看放大图片
+    function enlargePic(thisDiv){
+        $('#imgmask').css('height',window.screen.height);
+        $('#imgmask').css('width',window.screen.width);
+        var img = document.createElement('img');
+        img.src = thisDiv.childNodes[0].src;
+        img.onclick = function(e){
+            var e = window.event || e;
+            if (e.stopPropagation) e.stopPropagation();
+            else e.cancelBubble = true;
+        };
+        document.getElementById('imgmask').appendChild(locateCenterPic(img));
+        document.getElementById("imgmask").style.display = "block";
+
+
+        //增加双指旋转放大缩放事件
+        var box = img;
+        var boxGesture=setGesture(box);  //得到一个对象
+        boxGesture.gesturestart=function(){  //双指开始
+        };
+        boxGesture.gesturemove=function(e){  //双指移动
+            box.innerHTML = e.scale+"<br />"+e.rotation;
+            box.style.transform="scale("+e.scale+") rotate("+e.rotation+"deg)";//改变目标元素的大小和角度
+        };
+        boxGesture.gestureend=function(){  //双指结束
+            box.innerHTML="";
+        };
+    }
+    //使图片放大后处于屏幕中间
+    function locateCenterPic(ThisPic){
+        var RePicWidth = window.screen.width/2; //这里修改为您想显示的宽度值
+        var TrueWidth = ThisPic.width; //图片实际宽度
+        var TrueHeight = ThisPic.height; //图片实际高度
+        //宽大于高
+        if(TrueWidth>TrueHeight){
+            RePicWidth = window.screen.width;
+            ThisPic.width = RePicWidth;
+            ThisPic.height = TrueHeight * (RePicWidth/TrueWidth);
+        }//宽小于高
+        else{
+            ThisPic.width = RePicWidth;
+            ThisPic.height = TrueHeight * (RePicWidth/TrueWidth);
+        }
+        var leftmargin = (window.screen.width - ThisPic.width)/2;
+        var topmargin = (window.screen.height - ThisPic.height)/2;
+        ThisPic.style.top = topmargin+"px";
+        ThisPic.style.left = leftmargin+"px";
+        return ThisPic;
+    }
+    //取消查看图片
+    function disappear(){
+        document.getElementById('imgmask').style.display = "none";
+        document.getElementById('imgmask').innerHTML = "";
+        //document.removeEventListener("mousemove", myFunction);
+    }
+
+    function ReSizePic(ThisPic) {
+        var RePicWidth = 100; //这里修改为您想显示的宽度值
+
+        var TrueWidth = ThisPic.width; //图片实际宽度
+        var TrueHeight = ThisPic.height; //图片实际高度
+        if(TrueWidth>TrueHeight){
+            //宽大于高
+            var reWidth = RePicWidth;
+            ThisPic.width = reWidth;
+            //垂直居中
+            var nowHeight = TrueHeight * (reWidth/TrueWidth);
+            return nowHeight;  //将图片修改后的高度返回，供垂直居中用
+        }else{
+            //宽小于高
+            var reHeight = RePicWidth;
+            ThisPic.height = reHeight;
+        }
+    }
+    //双指运动事件
+    function setGesture(el){
+        var obj={}; //定义一个对象
+        var istouch=false;
+        var start=[];
+        el.addEventListener("touchstart",function(e){
+            if(e.touches.length>=2){  //判断是否有两个点在屏幕上
+                istouch=true;
+                start=e.touches;  //得到第一组两个点
+                obj.gesturestart&&obj.gesturestart.call(el); //执行gesturestart方法
+            };
+        },{ passive: false });
+        el.addEventListener("touchmove",function(e){
+            e.preventDefault();
+            if(e.touches.length>=2&&istouch){
+                var now=e.touches;  //得到第二组两个点
+                var scale=getDistance(now[0],now[1])/getDistance(start[0],start[1]); //得到缩放比例，getDistance是勾股定理的一个方法
+                var rotation=getAngle(now[0],now[1])-getAngle(start[0],start[1]);  //得到旋转角度，getAngle是得到夹角的一个方法
+                e.scale=scale.toFixed(2);
+                e.rotation=rotation.toFixed(2);
+                obj.gesturemove&&obj.gesturemove.call(el,e);  //执行gesturemove方法
+            };
+        },{ passive: false });
+        el.addEventListener("touchend",function(e){
+            if(istouch){
+                istouch=false;
+                obj.gestureend&&obj.gestureend.call(el);  //执行gestureend方法
+            };
+        },{ passive: false });
+        return obj;
+    };
+
+    function getDistance(p1, p2) {
+        var x = p2.pageX - p1.pageX,
+            y = p2.pageY - p1.pageY;
+        return Math.sqrt((x * x) + (y * y));
+    };
+
+    function getAngle(p1, p2) {
+        var x = p1.pageX - p2.pageX,
+            y = p1.pageY- p2.pageY;
+        return Math.atan2(y, x) * 180 / Math.PI;
+    };
+
+
+</script>
+</html>

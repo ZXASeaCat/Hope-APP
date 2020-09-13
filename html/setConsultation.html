@@ -1,0 +1,209 @@
+<!--医生设置时间
+
+    涉及数据：
+    医生ID
+	设置的时间
+	预约最大人数
+	预约剩余人数
+	major
+	hospital
+-->
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" type="text/css" href="../css/global.css" />		<!--弹出时间表格封装样式-->
+	<link rel="stylesheet" type="text/css" href="../css/aui.css" />
+	<style>
+	html,body{
+		width: 100%;
+		height: 100%;
+		background-image:url(../image/personbg.jpg);
+	}
+	.setdiv{
+		background:-webkit-linear-gradient(left top,rgba(122,195,248,1),rgba(246,227,247,1),rgba(255,239,203,1));
+		box-shadow:4px 2px 4px rgba(63,72,204,1);
+		margin:40% 10% 0 10%;
+		text-align:center;
+		border-radius: 10px;
+		height:50%;
+		width:80%;
+		display:inline-block;
+		position:absolute;
+	}
+	button {
+		background-color: rgba(98,225,136);
+		color: #FFFFFF;
+		overflow: hidden;
+		border: none;
+		outline: none;
+		border-radius: 5px;
+		display: inline-block;
+	}
+	</style>
+</head>
+<body>
+	<header id = "header" class="aui-bar aui-bar-nav">
+	    <div class="aui-pull-left aui-btn" onclick = "javascript:api.closeWin({name: 'setConsultation'});">
+	        <span class="aui-iconfont aui-icon-left"></span>
+	    </div>
+	    <div style = "position: absolute; left: 50%; transform: translateX(-50%);">设置预约时间</div>
+	</header>
+	<div class="setdiv" style = "text-align:center;">
+		<div class="fill_date_item" id="doc-select-1">
+			<input type="text" placeholder="请选择时间" id="fill_infomation_date_start1" readonly="readonly">
+				至
+			<input type="text" placeholder="请选择时间" id="fill_infomation_date_start2" readonly="readonly">
+		</div>
+		<input type="text" id="ptCount"  placeholder="该时间段治疗总人数" oninput="value=value.replace(/[^\d]/g,'')" value = "">
+		<button onclick = "select()">确定</button>
+	</div>
+
+<p></p>
+<div class="mask-time" style="display:none"></div><!--遮罩层-->
+<div class="time-area" style="display:none;touch-action:none"><!--时间选择表格-->
+	<input type="hidden" name="date_" value="">
+	<input type="hidden" name="time_">
+	<div class="box-date">
+		<ul class="promptu-menu2 font13"></ul>
+	</div>
+	<div class="time-choose-table font13 txt-gray" id="time-choose-table"></div>
+	<div class="font11 txt-light-gray txt-small" style="display:none"> 提示：灰色时间不可选择，最长可预约7天内的服务时间。</div>
+	<input type="button" value="确定选择" class="am-btn btn-default am-btn-green mt-line btn-choose-time" style='width:94.668%;margin-top:0px'>
+</div>
+<script type='text/javascript' src='../script/hope/jquery.min.js'></script>
+<script type='text/javascript' src='../script/hope/jquery.promptu-menu.js' ></script>
+<script type='text/javascript' src='../script/hope/RESTAPI.js' ></script>
+<script type="text/javascript" src='../script/hope/SHA1.js' ></script>
+<script type='text/javascript' src='../script/hope/databaseUse.js' ></script>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/aui-toast.js" ></script>
+<script type="text/javascript">
+
+apiready = function(){
+	//顶部样式
+	$api.fixStatusBar($api.dom('header'));
+	api.setStatusBarStyle({
+		style : 'light',
+		color : '#000'
+	});
+	//监听手机返回键
+	api.addEventListener({
+		name: 'keyback'
+	}, function (ret, err) {
+		api.closeWin({name: 'setConsultation'});
+	});
+}
+//点击选择时间
+function select()
+{
+	var selectTime1 = new Date($api.byId('fill_infomation_date_start1').value);
+	var selectTime2 = new Date($api.byId('fill_infomation_date_start2').value);
+	var ptCount = $api.byId('ptCount').value;
+    updateOrInsert("tb_dcworktime",
+	{
+	  "dc_id":$api.getStorage("dc_id"),//本人id
+	  "worktime":selectTime1.toString(), //选择时间
+	  "worktimeend":selectTime2.toString(), //选择时间
+	  "major":$api.getStorage("major"),
+	  "hospital":$api.getStorage("hospital"),
+	  "tb_dcinformation":$api.getStorage("id"),	//云数据库自动生成的id
+    },
+	{
+	  "sum":ptCount,
+	  "rest":ptCount,
+  	},
+	function(){
+		let toast = new auiToast();
+		toast.custom({
+			title:"重新设置成功",
+			html:'<i class="aui-iconfont aui-icon-laud"></i>',
+			duration:2000
+		});
+	},function(){
+		let toast = new auiToast();
+		toast.custom({
+			title:"设置成功",
+			html:'<i class="aui-iconfont aui-icon-laud"></i>',
+			duration:2000
+		});
+	});
+}
+
+//时间表模块的函数
+$(function()
+{
+	var type = 1;
+	if (type == 1) {
+		var type_ = 'hour';
+		var length_ = 1;
+	} else {
+		if (type == 2 || type == 3) {
+			var type_ = 'hour';
+		} else {
+			var type_ = 'halfHour';
+		}
+		var length_ = 3;
+	}
+	var nowDateArray = getNowFormatDate().split(' ');
+	var date_ = nowDateArray[0];
+	//var type_ = 'halfHour';
+	t(date_, type_, length_);
+	$('.mask-time').height($(window).height());
+	$('#doc-select-1').click(function() {
+		$('.mask-time,.time-area').show();
+	});
+	if ($('#fill_infomation_date_start1').val() == "请选择开始时间") {
+		$('#fill_infomation_date_start1').css('color', '#afb2b2')
+	} else {
+		$('#fill_infomation_date_start1').css('color', '#333')
+	}
+
+
+	$('.btn-choose-time').click(function() {
+		$('#fill_infomation_date_start1').css('color', '#333')
+		if (!$('input[name=time_]').val()) {
+			return alert('请选择服务时间');
+		}
+		var textTime = $('input[name=time_]').val().split(':');
+		$('#fill_infomation_date_start1').val($('input[name=date_]').val() + ' ' + textTime[0] + ':' + textTime[1]);
+		$('input[name=start_time]').val($('input[name=date_]').val() + ' ' + textTime[0] + ':' + textTime[1] + ':00');
+		$('.mask-time,.time-area').css("display", "none");
+		$('#doc-select-1').attr('value', 2);
+		//*******************************************
+		//增加:医生确定时间后，会查询该时间段有没有设置过了
+		var queryTime = new Date($("#fill_infomation_date_start1").val()).toString();
+		//加1小时
+		textTime[0]++;
+		$('#fill_infomation_date_start2').val($('input[name=date_]').val() + ' ' + textTime[0] + ':' + textTime[1]);
+		query("tb_dcworktime",
+		  		{"and": [
+					{
+						"dc_id":$api.getStorage("dc_id"),//本人id
+				  		"worktime":{"lte":queryTime}, //时间上传得用string字符串，官方不明原因
+					},
+					{
+						"worktime":{"gte":queryTime}, //时间上传得用string字符串，官方不明原因
+	  	  			}
+						]
+				},
+				["id","sum","rest"],null,null,
+				function(ret){
+	  				$api.byId('ptCount').value  = ret[0]["sum"];
+		 		},
+				function(ret){
+	  				$api.byId('ptCount').value  = "";
+		  		}
+		);
+		//********************************************
+	});
+
+});
+
+
+
+</script>
+</body>
+</html>

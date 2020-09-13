@@ -1,0 +1,436 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<link rel="stylesheet" type="text/css" href="../css/aui.css" />
+	<style type="text/css">
+		.aui-bar-tab {
+			border-top: 1px solid #EEEEEE;
+		}
+	</style>
+</head>
+<body>
+	<header class="aui-bar aui-bar-nav" id="head">
+		最新消息
+	</header>
+	<footer class="aui-bar aui-bar-tab" id="footer">
+		<!--<div class="aui-bar-tab-item xx">-->
+		<div class="aui-bar-tab-item" tapmode>
+			<i class="aui-iconfont aui-icon-comment"></i>
+			<div class="aui-bar-tab-label">
+				消 息
+			</div>
+		</div>
+		<div class="aui-bar-tab-item" tapmode>
+			<i class="aui-iconfont aui-icon-edit"></i>
+			<div class="aui-bar-tab-label">
+				医生列表
+			</div>
+		</div>
+		<div class="aui-bar-tab-item" tapmode>
+			<i class="aui-iconfont aui-icon-calendar"></i>
+			<div class="aui-bar-tab-label">
+				专家会诊
+			</div>
+		</div>
+		<div class="aui-bar-tab-item" tapmode>
+			<i class="aui-iconfont aui-icon-date"></i>
+			<div class="aui-bar-tab-label">
+				实时监测
+			</div>
+		</div>
+		<div class="aui-bar-tab-item" tapmode>
+			<i class="aui-iconfont aui-icon-gear"></i>
+			<div class="aui-bar-tab-label">
+				个人信息
+			</div>
+		</div>
+	</footer>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/aui-tab.js"></script>
+<script type="text/javascript" src="../script/hope/vue.min.js"></script>
+<script type="text/javascript">
+var myId,myName,myTx;
+var currentFrame,url,frameName;
+var rong;
+apiready = function() {
+	api.parseTapmode();
+	//返回键单击监听
+    api.addEventListener({
+            name : 'keyback'
+    	}, function(ret, err) {
+            api.toast({
+                    msg : '再点击一次退出应用',
+                    duration : 2000,
+                    location : 'bottom'
+            });
+            api.addEventListener({
+                    name : 'keyback'
+            }, function(ret, err) {
+                    api.closeWidget({
+                            silent : true
+                    });
+            });
+            setTimeout(function() {
+                    api.closeWidget({});
+            }, 2000)
+    });
+
+	myId = $api.getStorage("dc_id");
+	myName = $api.getStorage("name");
+	myTx = $api.getStorage("dc_tx");
+	rong = api.require('rongCloud2');
+	//融云接入
+	var rongConnect = new Vue({
+		data: {
+		    timer:null,   //循环播放铃声的定时器
+		},
+		created:function(){
+			this.initRongCloud();  //这个放在created里面，
+		},
+		methods:{
+			//初始化融云
+			initRongCloud:function(){
+				    var that = this;
+				    //初始化融云，如果存在 rongToken 的话
+				    if($api.getStorage(myId+"_rong_token")){
+						let rong_appkey = api.loadSecureValue({
+					        sync: true,
+					        key: 'rong_appkey'
+					    });
+				        rong.init({
+					    	appKey: rong_appkey
+							},function(ret, err) {
+					            if (ret.status == 'success') {
+					            } else {
+					                api.alert({
+					                    title: '提示',
+					                    msg: '聊天服务器连接失败，请重新登录！',
+					                }, function(ret, err){
+					                    //返回登录页
+					                });
+					            }
+				        });
+
+						//设置监听
+		                that.setCallListener();
+				    }
+				},
+			//设置会话消息和视频聊天请求的全局监听器，整个app项目中，所有的消息监听事件都在此方法中完成
+			//在调用 init 方法之后，调用 connect 方法之前设置
+		    setCallListener:function(){
+			        var that = this;
+					//---------------------------------//
+					/***********   接收方   ************/
+					//---------------------------------//
+					//收到消息，发送到wechat.html的api监听器
+					rong.setOnReceiveMessageListener(function (ret, err) {
+						if(ret){
+							api.sendEvent({
+								name: 'setOnReceiveMessageListener',
+								extra: {result:ret.result}
+							});
+						}
+					});
+			        //收到来电的事件
+			        rong.addCallReceiveListener({
+			            target:'didReceiveCall'
+			        	},function(ret){
+			            console.log('收到来电的事件：'+JSON.stringify(ret))
+			            var callId = ret.callSession.callId;
+			            var uid = ret.callSession.targetId;
+			            //这里就是进入视频界面，uid、callId在这里不需要更改。callStatus是按钮状态，3表示来电显示。
+						api.openWin({
+						    name: 'showVideo_frm',
+						    url: 'call/showVideo_frm.html',
+						    pageParam: {
+						        uid:uid,
+								callId:callId,
+								callStatus:3   // 1拨过去  2接听中  3待接收
+						    }
+						});
+			            //播放铃声
+			            api.startPlay({
+			                path: 'widget://html/call/voice.amr'
+			            	}, function(ret, err) {
+			            });
+			            that.timer = setInterval(function(){
+			                api.startPlay({
+			                    path: 'widget://html/call/voice.amr'
+			                	}, function(ret, err) {
+			                });
+			            },5000)
+			        });
+
+			        //通话已接通的事件
+			        rong.addCallSessionListener({
+			            target:'didConnect'
+			        	},function(ret){
+			            console.log('通话已接通的事件'+JSON.stringify(ret))
+			            //关闭声音
+			            api.stopPlay();
+			            clearInterval(that.timer)
+			        });
+
+					//---------------------------------//
+					/***********   发送方   ************/
+					//---------------------------------//
+			        //对端用户加入了通话的事件
+			        rong.addCallSessionListener({
+			            target:'remoteUserDidJoin'
+			        	},function(ret){
+			            console.log('对端用户加入了通话的事件'+JSON.stringify(ret))
+			            rong.getCallSession(function(ret) {
+			            	//电话接通执行的代码放在这里，不能放到上面的didConnect里面。
+			                api.execScript({
+			                    name: 'showVideo_frm',
+			                    script: 'window.rootVue.setCallStatus('+2+');'  //showVideo_win页面也在call文件夹里，这里更改callStatus为2，即接通
+			                });
+			                //callerUserId 拨打电话的用户ID  selfUserId  自己的ID  targetId    对方的ID
+			                api.execScript({
+			                    name: 'showVideo_frm',
+			                    script: 'window.rootVue.showVideo("'+ret.selfUserId+'","'+ret.targetId+'");'  //这里的selfUserId和targetId也不要动，就这么写。
+			                });
+			                // //重新打开showVideo_frm，将按钮的frame提到video的前面来
+			                // api.execScript({
+			                //     name: 'showVideo_frm',
+			                //     script: 'openFram();'
+			                // });
+			            });
+			            //关闭声音
+			            api.stopPlay();
+			            clearInterval(that.timer)
+			        });
+
+			        //对端用户正在振铃的事件
+			        rong.addCallSessionListener({
+			            target:'remoteUserDidRing'
+				        },function(ret){
+				            console.log('对端用户正在振铃的事件'+JSON.stringify(ret))
+			        });
+
+			        //对端用户切换了媒体类型的事件
+			        rong.addCallSessionListener({
+			            target:'remoteUserDidChangeMediaType'
+				        },function(ret){
+				            console.log('对端用户切换了媒体类型的事件'+JSON.stringify(ret))
+			        });
+
+			        //对端用户开启或关闭了摄像头的状态的事件
+			        rong.addCallSessionListener({
+			            target:'remoteUserDidDisableCamera'
+				        },function(ret){
+				            console.log('对端用户开启或关闭了摄像头的状态的事件'+JSON.stringify(ret))
+			        });
+
+			        //对端用户挂断
+			        rong.addCallSessionListener({
+			            target:'remoteUserDidLeft'
+			        	},function(ret){
+				            console.log('对端用户挂断'+JSON.stringify(ret))
+							setTimeout(function() {
+								console.log("clao");
+								api.closeWin({
+					                name: 'showVideo_frm'
+				            	});
+							}, 300)
+							rong.hangup();
+			            clearInterval(that.timer)
+			        });
+
+					//---------------------------------//
+					/***********   双方   ************/
+					//---------------------------------//
+					//通话已结束的事件
+					rong.addCallSessionListener({
+						target:'didDisconnect'
+						},function(ret){
+							console.log('通话已结束的事件'+JSON.stringify(ret))
+							console.log("clao");
+							api.closeWin({
+								name: 'showVideo_frm'
+							});
+							clearInterval(that.timer)
+					});
+
+					//连接
+					that.connectRongCloud();
+			    },
+			//根据保存在本地的token，连接融云服务器
+		    connectRongCloud: function(){
+		        var that = this;
+				let token = $api.getStorage(myId+"_rong_token");
+				console.log("取出保存的融云token："+token);
+		        rong.connect({
+		            token : token
+		        }, function(ret, err) {
+		            if(ret.status == 'success'){
+		                //设置视频语音电话监听
+						console.log("融云连接成功");
+
+		            }
+		            if (ret.code == '31003') {
+		                console.log('聊天服务器不可用');
+		            }else if(ret.code == '31004'){
+		                api.alert({
+		                    title: '提示',
+		                    msg: '错误的令牌（Token），Token 解析失败，请重新向身份认证服务器获取 Token！',
+		                }, function(ret, err){
+		                    //返回登录页
+		                });
+		            }else if(ret.code == '31002'){
+		                console.log('错误的 App Key，或者 App Key 被服务器积极拒绝');
+		            }else if(ret.code == '33002'){
+		                console.log('聊天服务端数据库错误');
+		            }else if(ret.code == '31000'){
+		                console.log('聊天服务器超时');
+		            }else if(ret.code == '-10000'){
+		                //未调用 init 方法进行初始化
+		                that.initRongCloud();
+		            }else if(ret.code == '-10002'){
+		                console.log('聊天服务器connect输入参数错误');
+		            }else if(ret.code == '-1000'){
+		                console.log('聊天服务器重复connect');
+		            }
+		        });
+		    },
+		}
+	});
+
+    //顶部样式
+	$api.fixStatusBar($api.dom('header'));
+	api.setStatusBarStyle({
+		style : 'light',
+		color : '#000'
+	});
+	//设计底部导航
+	var tab = new auiTab({
+		element : document.getElementById("footer"),
+		index : 1,
+		repeatClick : false
+		}, function(ret) {
+			if (ret) {
+				var headerValue;
+				switch(ret.index) {
+					case 1:
+						headerValue = "消息";
+						frameName = 'wechat';
+						url='wechat.html';
+						break;
+					case 2:
+						headerValue = "医生列表";
+						frameName = 'doctors';
+						url='doctors.html';
+						break;
+					case 3:
+						headerValue = "专家会诊";
+						frameName = 'experts_consultaion';
+						url='experts_consultaion.html';
+						break;
+					case 4:
+						headerValue = "实时监测";
+						frameName = 'real-time-monitor';
+						url='real-time-monitor.html';
+						break;
+					case 5:
+						headerValue = "个人消息";
+						frameName = 'personal_message';
+						url='personal_message.html';
+						break;
+				}
+				///////////////////////////////////////势必要删除，换成切换窗口//////////
+				// api.closeFrame({
+                //     name: currentFrame
+                // });
+                // currentFrame = frameName;
+				$api.byId("head").innerHTML = headerValue;			//改变顶部信息
+				api.openFrame({
+					name : frameName,
+					url : url,
+					rect : {
+						x : 0,
+						y : $api.dom('header').offsetHeight,
+						w : api.winWidth,
+						h : api.frameHeight - $api.dom('footer').offsetHeight - $api.dom('header').offsetHeight,
+					},
+					reload : false,
+					pageParam : {
+						name : frameName,
+					}
+				});
+			}
+	});
+	//默认打开消息列表页
+	api.openFrame({
+		name : 'wechat',
+		url : 'wechat.html',
+		rect : {
+			x : 0,
+			y : $api.dom('header').offsetHeight,
+			w : api.winWidth,
+			h : api.frameHeight - $api.dom('footer').offsetHeight - $api.dom('header').offsetHeight,//会话页面用到这个代码
+		},
+		pageParam : {
+			name : 'wechat',
+		}
+	});
+}
+
+
+
+
+//※※※※※※※这个拨打电话的事件一定要放在main里面，跟监听放一个页面，否则会导致ios监听不到didConnect 和 remoteUserDidJoin 两个事件(研究了两天才发现这个问题的)
+function makeCall(targetId,targetName,targetTx){   //这里的targetId，就是接听电话人的ID
+    rong.isCallEnabled({
+        conversationType:'PRIVATE',
+        mediaType:'video'
+    },function(ret){
+        if(ret.enabled){
+			let extra = {};
+            //设置拨打电话和被拨打电话人的昵称和头像，用来显示在来电提醒和拨打电话界面
+            extra.headImg1 = myTx;  //这是拨打电话的头像，一般从 localStorage 里面读取
+            extra.userName1 = myName;  //这是拨打电话的昵称，一般从 localStorage 里面读取
+            extra.headImg3 = targetTx;  //这是接听电话的头像，想办法获取，可以在拨打电话事件执行之前获取到，然后传到这里来
+            extra.userName3 = targetName;  //这是接听电话的昵称，想办法获取，可以在拨打电话事件执行之前获取到，然后传到这里来
+            rong.startCall({
+                targetId:targetId,
+                mediaType:'video',
+                conversationType: 'PRIVATE',
+                extra:extra,//JSON.stringify(extra),
+                userIdList: [targetId,myId]  //双方的ID，没有前后顺序之分
+            },function(ret){
+                var targetId = targetId;
+                var uid = myId;  //这里的uid是自己的id
+                var callId = ret.callSession.callId;
+				api.openWin({
+			        name: 'showVideo_frm',
+			        url: 'call/showVideo_frm.html',
+			        pageParam: {
+						uid:uid,
+						callId:callId,
+						targetId:targetId,
+						callStatus:1,
+			        },
+			    });
+				// api.openWin({
+				// 	name: 'showVideo_win',
+				// 	url: 'call/showVideo_win.html',
+				// 	pageParam: {
+				// 		uid:uid,
+				// 		callId:callId,
+				// 		targetId:targetId,
+				// 		callStatus:1,
+				// 	}
+				// });
+            });
+        }else{
+            alert('请在融云后台开通音视频');
+        }
+    })
+}
+</script>
+</html>

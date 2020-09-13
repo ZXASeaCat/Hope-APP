@@ -1,0 +1,435 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/views.css"/>
+	<style type="text/css">
+        body {
+            background-color: #FFFFFF;
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .insertleft {
+            float: left;
+            width: 350px;
+        }
+
+        .insertright {
+            float: right;
+            width: calc(100% - 350px);
+            text-align: center;
+        }
+
+        select {
+            margin: 2.5% 3.5%;
+            width: 25%;
+            /*display:inline-block;*/
+            text-align: center;
+            text-align-last: center;
+            background-color: #00FFFF;
+            color: #FFFFFF;
+            border-radius: 10px;
+            float: left;
+            height:60%;
+        }
+
+        button {
+            background-color: green;
+            color: #FFFFFF;
+            margin: 2% 6%;
+            padding: 0;
+            text-align: center;
+            width: 70px;
+            height: 40px;
+            overflow: hidden;
+            border: none;
+            outline: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        option {
+            margin: 0;
+            padding: 0;
+            width: 150px;
+            height: 40px;
+            font-size: 20px;
+            display: inline-block;
+            border-radius: 10px;
+            padding-top: 10px;
+        }
+		.doctor{
+			margin:2px;
+			border-radius: 5px;
+			border:1px solid green
+		}
+        .mytime{
+            border-radius: 10px;
+            text-align-last: center;
+            border:1px solid green;
+            display:inline-block;
+            width:300px;
+            /*width:57%;
+            height:8%;
+            border-radius: 10px;
+            margin:1% 1%;
+            text-align-last: center;
+            border:2px solid green;*/
+        }
+        .card{
+            height:50%;
+            width:98%;
+            background:-webkit-linear-gradient(left top,rgba(185,217,252,1),rgba(141,195,241,1),rgba(101,94,233,1));
+            box-shadow:4px 2px 4px rgba(63,72,204,1);
+            margin:20px 20px 20px 0 ;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .divbtn{
+            float:left;height:100%;width:33.3%;color:#ffffff;text-align:center;line-height:220%;font-size:20px;border-top:1px dashed #ffffff;
+            background:rgba(255, 255, 255, 0.3);
+        }
+		.doctor{
+			margin:2px;
+			border-radius: 5px;
+			border:1px solid green
+		}
+        @media(max-width: 360px) {
+            .form-control {
+                font-size: 10px;
+                padding: 0 5px;
+            }
+        }
+        @media(max-width: 320px) {
+            .col-xs-6 {
+                padding: 0 5px;
+            }
+        }
+        input[type=text]{
+          border: none;
+        }
+        /*图片*/
+        img{
+            position: relative;
+        }
+        .float{
+        float:left;
+        width : 100;
+        height: 100;
+        overflow: hidden;
+        border: 1px solid #CCCCCC;
+        border-radius: 10px;
+        padding: 5px;
+        margin: 5px;
+        }
+        .result{
+            width: 100px;
+            height: 100px;
+            box-sizing: border-box;
+            display: none;
+        }
+        /*放大图片*/
+        .imgmask{
+            display: none;
+            top: 0;
+            right: 0;
+            bottom: 0;
+
+            z-index: 200;
+            background: rgba(0,0,0,.5);
+        }
+        .bigImg{
+        }
+        </style>
+	</style>
+</head>
+<body>
+    <header id="header" class="aui-bar aui-bar-nav">
+        <div class="aui-pull-left aui-btn" onclick="javascript:api.closeWin({name: 'management_msg'});">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style="position: absolute; left: 50%; transform: translateX(-50%);">预约详情</div>
+    </header>
+    <ul id="arrange_msg" style="overflow:scroll;position:absolute;top:8%;width:96%;height:88%;border:none;margin:2%">
+        <div class="views-info" style="padding-top:0px">
+            <div class="views-info-item">
+              <i class="views-iconfont views-icon-detail"></i>
+              <span class="views-margin-l-5">数据详情</span>
+            </div>
+        </div>
+	</ul>
+    <!--图片遮罩层-->
+    <div class="imgmask" id="imgmask" style = "width:100%;height:100%;position:fixed;" onclick="disappear()">
+    <img src="" alt="" class="bigImg" id="bigImg"></div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery.min.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script>
+let hasClick = false;
+apiready = function(){
+    $api.fixStatusBar($api.dom('header'));
+    api.parseTapmode();
+    subscribeMsg();
+}
+
+let pics=[];
+//详细信息按钮
+function  subscribeMsg()
+{
+    if(api.pageParam.arrange_checked =="审核通过"){
+        //然后再查询tb_succeed_subscribe
+        batchSelect(["tb_subscribe","tb_succeed_subscribe"],
+            {"subscribe_id":api.pageParam.subscribe_id},
+            function(ret){
+                var html = "";
+                html += "<li class='card'><div style='height:85%;width:100%'>";
+                html += "<div style='float:left;color:#ffffff;height:100%;width:91%;margin:0 auto;padding:0 0 0 5%'>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>申请单号：" + ret[0][0]["subscribe_id"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>病人ID&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[0][0]["pt_id"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[0][0]["hospital"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>科室分类：" + ret[0][0]["major"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>安排人数：" + ret[0][0]["arrange_num"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>安排时间：" + convertDate(ret[0][0]["arrange_time"]) + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>审核情况：" + ret[0][0]["arrange_checked"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>会诊号&nbsp;&nbsp;&nbsp;&nbsp;："+ret[1][0]["consultation_id"]+'</div>';
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>会诊状态："+ret[1][0]["state"]+'</div>';
+                html += "<div style='margin:0 5%;height:9.5%;width:90%' style='height:auto;''>会诊目的："+ret[0][0]["purpose"]+'</div></div></div>';
+                html += "<div style = 'height:15%;width:100%'>";
+                html += "<div class='divbtn' style='background:rgba(12,243,47,0.5);width:100%;border-radius:0 0 10px 10px;' onclick='showPic()' >查看病人资料图片</div>";
+                html += "</div></li>";
+                //html += '<div>病人资料：'+ret[0][0]["data_picture"]+'</div>';
+                //html += '<div style="height:9.5%;width:100%">会诊医生：'+ret[1][0]["doctors"]+'</div>';
+                $api.byId("arrange_msg").innerHTML += html;
+                pics = ret[0][0]["data_picture"];
+                //console.log(pics)
+
+            },function(err){})
+    }
+    else if(api.pageParam.arrange_checked =="审核未通过"){
+        //然后再查询tb_fail_subscribe
+        batchSelect(["tb_subscribe","tb_fail_subscribe"],
+            {"subscribe_id":api.pageParam.subscribe_id},
+            function(ret){
+                var html = "";
+                html += "<li class='card'><div style='height:85%;width:100%'>";
+                html += "<div style='float:left;color:#ffffff;height:100%;width:91%;margin:0 auto;padding:0 0 0 5%'>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>申请单号：" + ret[0][0]["subscribe_id"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>病人ID&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[0][0]["pt_id"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[0][0]["hospital"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>科室分类：" + ret[0][0]["major"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>安排人数：" + ret[0][0]["arrange_num"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>安排时间：" + convertDate(ret[0][0]["arrange_time"]) + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>审核情况：" + ret[0][0]["arrange_checked"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>审核原因：" + ret[1][0]["reason"]+'</div>';
+
+                html += '<div style="margin:0 5%;height:9.5%;width:90%" style="height:auto;">会诊目的：'+ret[0][0]["purpose"]+'</div></div></div>';
+                html += "<div style = 'height:15%;width:100%'>";
+                html += "<div class='divbtn' style='background:rgba(12,243,47,0.5);width:100%;border-radius:0 0 10px 10px;' onclick='showPic()' >查看病人资料图片</div>";
+                html += "</div></li>";
+                $api.byId("arrange_msg").innerHTML += html;
+                pics = ret[0][0]["data_picture"];
+            },function(err){});
+    }
+    else if(api.pageParam.arrange_checked =="未审核"){
+        batchSelect(["tb_subscribe"],
+            {"subscribe_id":api.pageParam.subscribe_id},
+            function(ret){
+                var html = "";
+                html += "<li class='card'><div style='height:85%;width:100%'>";
+                html += "<div style='float:left;color:#ffffff;height:100%;width:91%;margin:0 auto;padding:0 0 0 5%'>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>申请单号：" + ret[0][0]["subscribe_id"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>病人ID&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[0][0]["pt_id"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[0][0]["hospital"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>科室分类：" + ret[0][0]["major"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>安排人数：" + ret[0][0]["arrange_num"] + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>安排时间：" + convertDate(ret[0][0]["arrange_time"]) + "</div>";
+                html += "<div style='margin:0 5%;height:9.5%;width:90%'>审核情况：" + ret[0][0]["arrange_checked"] + "</div>";
+                html += '<div style="margin:0 5%;height:9.5%;width:90%" style="height:auto;">会诊目的：'+ret[0][0]["purpose"]+'</div></div></div>';
+                html += "<div style = 'height:15%;width:100%'>";
+                html += "<div class='divbtn' style='background:rgba(12,243,47,0.5);width:100%;border-radius:0 0 10px 10px;' onclick='showPic()' >查看病人资料图片</div>";
+                html += "</div></li>";
+                $api.byId("arrange_msg").innerHTML += html;
+                pics = ret[0][0]["data_picture"];
+            },function(err){});
+    }
+}
+function showPic()
+{
+    if(!hasClick)
+    {
+        hasClick = true;
+        var html = "";
+        html += '<div class="views-info" style="padding-top:0px"><div class="views-info-item"><i class="views-iconfont views-icon-detail"></i><span class="views-margin-l-5">资料图片</span></div></div>';
+        html += '<li class="aui-list-item"><div class="aui-list-item-input" id="containter"></div></li>';
+        $api.byId("arrange_msg").innerHTML += html;
+        var k = pics.length;
+        for(var n = 0;n<k;n++)
+        {
+            api.imageCache({
+                policy:"cache_else_network",
+                url: pics[n],
+                thumbnail:true
+            }, function(ret, err) {
+                let imgdiv = document.createElement('div');
+                imgdiv.innerHTML = '<div class="result" onclick="enlargePic(this)"><img src="'+ret["url"]+'" alt=""/></div>';
+                imgdiv['className'] = 'float';
+                imgdiv.getElementsByTagName('img')[0].onload = function(){
+                    var nowHeight = ReSizePic(this); //设置图片大小
+                    this.parentNode.style.display = 'block';
+                    var oParent = this.parentNode;
+                    if(nowHeight){
+                        //长图垂直居中
+                        oParent.style.paddingTop = (oParent.offsetHeight - nowHeight)/2 + 'px';
+                    }
+                    else {
+                        //长图水平居中
+                        oParent.style.paddingLeft = (oParent.offsetHeight - this.width)/2 + 'px';
+                    }
+                }
+                document.getElementById('containter').appendChild(imgdiv);
+            });
+        }
+    }
+}
+//点击查看放大图片
+function enlargePic(thisDiv){
+    $('#imgmask').css('height',window.screen.height);
+    $('#imgmask').css('width',window.screen.width);
+    var img = document.createElement('img');
+    img.src = thisDiv.childNodes[0].src;
+    img.onclick = function(e){
+        var e = window.event || e;
+        if (e.stopPropagation) e.stopPropagation();
+        else e.cancelBubble = true;
+    };
+    document.getElementById('imgmask').appendChild(locateCenterPic(img));
+    document.getElementById("imgmask").style.display = "block";
+
+
+    //增加双指旋转放大缩放事件
+    var box = img;
+    var boxGesture=setGesture(box);  //得到一个对象
+    boxGesture.gesturestart=function(){  //双指开始
+    };
+    boxGesture.gesturemove=function(e){  //双指移动
+        box.innerHTML = e.scale+"<br />"+e.rotation;
+        box.style.transform="scale("+e.scale+") rotate("+e.rotation+"deg)";//改变目标元素的大小和角度
+    };
+    boxGesture.gestureend=function(){  //双指结束
+        box.innerHTML="";
+    };
+}
+//使图片放大后处于屏幕中间
+function locateCenterPic(ThisPic){
+    var RePicWidth = window.screen.width/2; //这里修改为您想显示的宽度值
+    var TrueWidth = ThisPic.width; //图片实际宽度
+    var TrueHeight = ThisPic.height; //图片实际高度
+    //宽大于高
+    if(TrueWidth>TrueHeight){
+        RePicWidth = window.screen.width;
+        ThisPic.width = RePicWidth;
+        ThisPic.height = TrueHeight * (RePicWidth/TrueWidth);
+    }//宽小于高
+    else{
+        ThisPic.width = RePicWidth;
+        ThisPic.height = TrueHeight * (RePicWidth/TrueWidth);
+    }
+    var leftmargin = (window.screen.width - ThisPic.width)/2;
+    var topmargin = (window.screen.height - ThisPic.height)/2;
+    ThisPic.style.top = topmargin+"px";
+    ThisPic.style.left = leftmargin+"px";
+    return ThisPic;
+}
+//取消查看图片
+function disappear(){
+    document.getElementById('imgmask').style.display = "none";
+    document.getElementById('imgmask').innerHTML = "";
+    //document.removeEventListener("mousemove", myFunction);
+}
+
+function ReSizePic(ThisPic) {
+    var RePicWidth = 100; //这里修改为您想显示的宽度值
+
+    var TrueWidth = ThisPic.width; //图片实际宽度
+    var TrueHeight = ThisPic.height; //图片实际高度
+    if(TrueWidth>TrueHeight){
+        //宽大于高
+        var reWidth = RePicWidth;
+        ThisPic.width = reWidth;
+        //垂直居中
+        var nowHeight = TrueHeight * (reWidth/TrueWidth);
+        return nowHeight;  //将图片修改后的高度返回，供垂直居中用
+    }else{
+        //宽小于高
+        var reHeight = RePicWidth;
+        ThisPic.height = reHeight;
+    }
+}
+
+//双指运动事件
+function setGesture(el){
+    var obj={}; //定义一个对象
+    var istouch=false;
+    var start=[];
+    el.addEventListener("touchstart",function(e){
+        if(e.touches.length>=2){  //判断是否有两个点在屏幕上
+            istouch=true;
+            start=e.touches;  //得到第一组两个点
+            obj.gesturestart&&obj.gesturestart.call(el); //执行gesturestart方法
+        };
+    },{ passive: false });
+    el.addEventListener("touchmove",function(e){
+        e.preventDefault();
+        if(e.touches.length>=2&&istouch){
+            var now=e.touches;  //得到第二组两个点
+            var scale=getDistance(now[0],now[1])/getDistance(start[0],start[1]); //得到缩放比例，getDistance是勾股定理的一个方法
+            var rotation=getAngle(now[0],now[1])-getAngle(start[0],start[1]);  //得到旋转角度，getAngle是得到夹角的一个方法
+            e.scale=scale.toFixed(2);
+            e.rotation=rotation.toFixed(2);
+            obj.gesturemove&&obj.gesturemove.call(el,e);  //执行gesturemove方法
+        };
+    },{ passive: false });
+    el.addEventListener("touchend",function(e){
+        if(istouch){
+            istouch=false;
+            obj.gestureend&&obj.gestureend.call(el);  //执行gestureend方法
+        };
+    },{ passive: false });
+    return obj;
+};
+
+function getDistance(p1, p2) {
+    var x = p2.pageX - p1.pageX,
+        y = p2.pageY - p1.pageY;
+    return Math.sqrt((x * x) + (y * y));
+};
+
+function getAngle(p1, p2) {
+    var x = p1.pageX - p2.pageX,
+        y = p1.pageY- p2.pageY;
+    return Math.atan2(y, x) * 180 / Math.PI;
+};
+
+//转换日期
+function convertDate(time){
+	var date = new Date(time);
+	Y = date.getFullYear() + '-';
+	M = (date.getMonth() < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+	D = (date.getDate() < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ';
+	h = (date.getHours() < 10 ? '0'+(date.getHours()) : date.getHours()) + ':';
+	m = (date.getMinutes() < 10 ? '0'+(date.getMinutes()) : date.getMinutes()) + ':';
+	s =  date.getSeconds() < 10 ? '0'+(date.getSeconds()) : date.getSeconds();
+	return Y+M+D+h+m+s;
+}
+</script>
+</html>

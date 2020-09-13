@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<!--position:fixed和z-index不要改动，元素的顺序也不要改动-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+  <title>title</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+  <style type="text/css">
+  .mask{
+        display: none;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 50;
+        background: rgba(0,0,0,.5);
+    }
+    .box
+    {
+        display:none;
+        margin:0 auto;
+        border-top-left-radius:15px;
+        border-top-right-radius:15px;
+        border-bottom-left-radius:0px;
+        border-bottom-right-radius:0px;
+        line-height: 75px;
+        width:700px;
+        height:150px;
+        background: #ffffff;
+        text-align:center;
+        color:black;
+        z-index:100;
+    }
+
+
+</style>
+</head>
+<body style = "background-color:#000000;">
+    <header id = "header" class="aui-bar aui-bar-nav aui-margin-b-15" style = "background-color:#000000;position:fixed;">
+        <div class="aui-pull-left aui-btn" onclick = "closeWin()">
+            <span class="aui-iconfont aui-icon-left"></span>头像
+        </div>
+        <!--<div id = "set" onclick = "openChangeFrame()" class="aui-pull-right aui-btn">
+            <i class="aui-iconfont aui-icon-gear"></i>
+        </div>-->
+    </<header>
+    <div>
+        <img id = "bigImg" style = "width:100%;height:auto;margin:auto;position:fixed;" src=""/>
+        <div id = "mask" class="mask" style = "width:100%;height:100%;position:fixed;"></div>
+        <div id = "bounceBox" class = "box"  style = "position:absolute;" >
+            <div>
+            <ul >
+                <li onclick="uploadTx()" style = "font-color:#000000">选择新的头像</li>
+                <li onclick="saveTx()">保存头像</li>
+            </ul>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="../script/hope/jquery-3.4.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+apiready = function() {
+    //头部样式
+    $api.fixStatusBar($api.dom('header'));
+    //点到弹出选择框外面就隐藏选择框（这里的实现方法是：点击遮罩层div，就隐藏弹出窗口）
+    var myDiv = $api.byId("mask");
+    document.body.onclick = function(e){
+      e = e || window.event;
+      var target = e.target || e.srcElement;
+      if(target == myDiv){
+         hide();
+      }
+    }
+    //显示图片
+    var el = $api.byId('bigImg');
+    var top = (api.winHeight -$api.offset(el).w)/2;
+    $api.css(el,'top:'+top+'px');
+    el.src = api.pageParam.imgSrc;
+}
+function closeWin()
+{
+    api.closeWin({
+        name: 'setTx'
+    });
+}
+
+function openChangeFrame()
+{
+    $api.css($api.byId("mask"),"display:block");
+    $api.css($api.byId("bounceBox"),"display:block");
+    //下面几句要加在后面，因为此时display：block把上面的DOM元素加到内存了，那么才可以读取
+    var el = $api.byId('bounceBox');
+    var top = api.winHeight - $api.offset(el).h;
+    $api.css($api.byId("bounceBox"),"top:"+top+"px;width:"+api.winWidth+"px");
+}
+
+
+function hide()
+{
+    $api.css($api.byId("mask"),"display:none");
+    $api.css($api.byId("bounceBox"),"display:none");
+}
+
+function saveTx()
+{
+    alert("保存头像");
+}
+
+function uploadTx()
+{
+    alert("上传头像");
+}
+</script>
+</html>

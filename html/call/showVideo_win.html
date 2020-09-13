@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <style>
+        body,
+        html {
+            background-color: rgba(0, 0, 0, 0);
+        }
+        </style>
+</head>
+<body>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/hope/vue.min.js"></script>
+<script>
+apiready = function(){
+
+}
+
+//
+// //初始化vue
+// function initVue(){
+//     'use strict';
+//     window.rootVue = new Vue({
+//         el: '#rootWrap',
+//         data: {
+//             uid:api.pageParam.uid,
+//             callId:api.pageParam.callId,
+//             targetId : api.pageParam.targetId
+//         },
+//         //初始化
+//         created:function(){
+//         },
+//         //实时检测
+//         watch:{
+//         },
+//         //方法
+//         methods: {
+//             //打开视频
+//             showVideo:function(uid1,uid2){   //uid自己的id，uid2别人的id
+//                 var rong = api.require('rongCloud2');
+//                 //打开他人的视频
+//                 rong.setVideoView({
+//                     rect: {
+//                         x: 0,
+//                         y: 0,
+//                         w: 100,//api.winWidth,
+//                         h: 100,//api.winHeight
+//                     },
+//                     userId: uid2,
+//                     bg: '#ffffff',
+//                     renderModel: 'hidden',
+//                     fixed: true
+//                 });
+//                 //打开自己的视频
+//                 rong.setVideoView({
+//                     rect: {
+//                         x: api.winWidth-130,
+//                         y: api.safeArea.top+20,
+//                         w: 110,
+//                         h: 180
+//                     },
+//                     userId: uid1,
+//                     bg: '#ff0000',
+//                     renderModel: 'hidden',
+//                     fixed: true
+//                 });
+//             },
+//             //重新打开视频
+//             resetVideoView:function(uid){
+//                 var rong = api.require('rongCloud2');
+//                 rong.resetVideoView({
+//                     userId: uid
+//                 });
+//             }
+//         },
+//         mounted:function(){
+//             setTimeout(function(){
+//                 openFram();
+//             },500)
+//         }
+//     });
+// }
+//
+// //打开frame - 请在vue mounted 中调用
+function openFram(){
+    api.openFrame({
+        name: 'showVideo_frm',
+        url: 'showVideo_frm.html',
+        rect: {
+            x: 0,
+            y: 0,
+            w: api.winWidth,
+            h: api.winHeight
+        },
+        pageParam: {
+            callStatus : api.pageParam.callStatus,
+            callId : api.pageParam.callId,
+            targetId : api.pageParam.targetId
+        },
+    });
+}
+</script>
+</html>

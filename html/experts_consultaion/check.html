@@ -1,0 +1,298 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style type="text/css">
+        body {
+            background-color: #ffffff;
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .insertleft {
+            float: left;
+            width: 350px;
+        }
+
+        .insertright {
+            float: right;
+            width: calc(100% - 350px);
+            text-align: center;
+        }
+
+        select {
+            margin: 2.5% 3.5%;
+            width: 25%;
+            /*display:inline-block;*/
+            text-align: center;
+            text-align-last: center;
+            background-color: #00FFFF;
+            color: #FFFFFF;
+            border-radius: 10px;
+            float: left;
+			height:60%;
+        }
+
+        button {
+            background-color: green;
+            color: #FFFFFF;
+            margin: 2% 6%;
+            padding: 0;
+            text-align: center;
+            width: 70px;
+            height: 40px;
+            overflow: hidden;
+            border: none;
+            outline: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        option {
+            margin: 0;
+            padding: 0;
+            width: 150px;
+            height: 40px;
+            font-size: 20px;
+            display: inline-block;
+            border-radius: 10px;
+            padding-top: 10px;
+        }
+        /*li{
+			margin:2px;
+			border-radius: 5px;
+			border:1px solid green
+		}*/
+		.mytime{
+			border-radius: 10px;
+			text-align-last: center;
+			border:1px solid green;
+			display:inline-block;
+			width:300px;
+			/*width:57%;
+			height:8%;
+			border-radius: 10px;
+			margin:1% 1%;
+			text-align-last: center;
+			border:2px solid green;*/
+		}
+
+        .card{
+            height:50%;
+            width:98%;
+            background:-webkit-linear-gradient(left top,rgba(185,217,252,1),rgba(141,195,241,1),rgba(101,94,233,1));
+            box-shadow:4px 2px 4px rgba(63,72,204,1);
+            margin:20px 20px 20px 0 ;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+		img{
+			width:80%;
+			height:auto;
+			margin:30% 4% 30% 16%;
+		}
+		.divbtn{
+			float:left;height:100%;width:33.3%;color:#ffffff;text-align:center;line-height:220%;font-size:20px;border-top:1px dashed #ffffff;
+			background:rgba(255, 255, 255, 0.3);
+		}
+    </style>
+</head>
+
+<body>
+    <header id="header" class="aui-bar aui-bar-nav">
+        <div class="aui-pull-left aui-btn" onclick="javascript:api.closeWin({name: 'check'});">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style="position: absolute; left: 50%; transform: translateX(-50%);">预约审查</div>
+    </header>
+    <div id="selectDiv" style="width:100%;height:10%;">
+        <select style="" id='select-hospital'>
+            <option>-医院-</option>
+			<option>广东医科大学附属医院</option>
+            <option>广州人民医院</option>
+            <option>神山医院</option>
+        </select>
+        <select style="" id='select-major'>
+            <option>-科室-</option>
+			<option>男科</option>
+            <option>妇科</option>
+            <option>外科</option>
+			<option>内科</option>
+            <option>骨科</option>
+        </select>
+        <select style="right:0;" id='select-checked'>
+            <option>-审核状态-</option>
+            <option>审核通过</option>
+            <option>审核未通过</option>
+            <option>未审核</option>
+        </select>
+    </div>
+    <div style="width:100%;height:10%;">
+		<input readonly="readonly" class="mytime" style="height:60%;margin:0% 3.5%;width:57%;border-radius: 10px;text-align-last: center;border:1px solid green;display:inline-block;" type="text" id="select-time" placeholder="-时间-">
+		<button onclick="getMessage()">查询</button>
+    </div>
+    <ul id="arrange_msg" style="overflow:scroll;position:absolute;top:28%;width:94%;height:70%;border:none;margin:2%"><!--background:-webkit-linear-gradient(left top,rgba(122,195,248,1),rgba(246,227,247,1),rgba(255,239,203,1));-->
+		<!--<li class="card">
+			<div style='height:85%;width:100%'>
+				<div style='float:left;color:#ffffff;height:100%;width:20%'>
+					<img src="../../image/subscribe.png" />
+				</div>
+				<div style='float:left;color:#ffffff;height:100%;width:71%;margin:0 auto;padding:0 0 0 5%'>
+					<div style='height:14%;width:100%'>医生&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：迪亚波罗</div>
+					<div style='height:14%;width:100%'>病人&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：Sekiro</div>
+					<div style='height:14%;width:100%'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：广东医科大学附属医院</div>
+					<div style='height:14%;width:100%'>科室&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：内科</div>
+					<div style='height:14%;width:100%'>安排人数：123</div>
+					<div style='height:14%;width:100%'>安排时间：2020-09-12 00:00:00</div>
+					<div style='height:14%;width:100%'>审核结果：未审核</div>
+				</div>
+			</div>
+			<div style = 'height:15%;width:100%'>
+				<div class='divbtn' style = 'border-right:1px dashed #ffffff;'>详情</div>
+				<div class='divbtn' style = 'background:rgba(100,100,233,0.5);border-right:1px dashed #ffffff;'>通过审核</div>
+				<div class='divbtn' style = 'background:rgba(12,243,47,0.5)'>驳回申请</div>
+			</div>
+		</li>-->
+    </ul>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="../../script/hope/jdate.min.js"></script>
+<script>
+    var check_subscribe; //管理员当前操作的申请单
+    window.onload = function() {
+        new Jdate({
+            el: '#select-time',
+            format: 'YYYY-MM-DD',
+            beginYear: 2020,
+            endYear: 2100,
+        });
+    };
+    apiready = function() {
+        //顶部样式
+        $api.fixStatusBar($api.dom('header'));
+        api.setStatusBarStyle({
+            style: 'light',
+            color: '#000'
+        });
+        // //初始化申请单信息窗口
+        // var h = api.frameHeight - $api.byId("selectDiv").offsetHeight - $api.byId("header").offsetHeight;
+        // $api.css($api.byId('arrange_msg'), 'height:' + h + 'px');
+        // $api.css($api.byId('arrange_msg'), 'width:' + api.frameWidth + 'px');
+    }
+
+    //查询所有申请单
+    function getMessage() {
+        $api.byId("arrange_msg").innerHTML = "";
+        //确定查询条件
+        var select_time = $api.byId("select-time").value;
+        var select_hospital = $api.byId("select-hospital").value;
+        var select_major = $api.byId("select-major").value;
+        var select_checked = $api.byId("select-checked").value;
+        var where = {};
+        if (select_time != "") {
+            //时间段
+            var time1 = new Date(select_time + " 00:00:00");
+            var time2 = new Date(select_time + " 23:59:59");
+            where["arrange_time"] = {
+                "between": [time1.toString(), time2.toString()]
+            };
+        }
+        if (select_hospital != "-医院-") {
+            where["hospital"] = select_hospital;
+        }
+        if (select_major != "-科室-") {
+            where["major"] = select_major;
+        }
+        if (select_checked != "-审核状态-") {
+            where["arrange_checked"] = select_checked;
+        }
+
+        //开始查找c
+        query("tb_subscribe", where, null, null, null,
+            function(ret) {
+                var frameWidth = api.frameWidth;
+                var html = "";
+                for (var i = 0; i < ret.length; i++) {
+					html += "<li class='card'><div style='height:85%;width:100%'><div style='float:left;color:#ffffff;height:100%;width:20%'><img src='../../image/subscribe.png'/></div>";
+					html += "<div style='float:left;color:#ffffff;height:100%;width:71%;margin:0 auto;padding:0 0 0 5%'>";
+					html += "<div style='height:14%;width:100%'>医生ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["dc_id"] + "</div>";
+                    html += "<div style='height:14%;width:100%'>病人ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["pt_id"] + "</div>";
+                    html += "<div style='height:14%;width:100%'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["hospital"] + "</div>";
+                    html += "<div style='height:14%;width:100%'>科室分类：" + ret[i]["major"] + "</div>";
+                    html += "<div style='height:14%;width:100%'>安排人数：" + ret[i]["arrange_num"] + "</div>";
+                    html += "<div style='height:14%;width:100%'>安排时间：" + convertDate(ret[i]["arrange_time"]) + "</div>";
+                    html += "<div style='height:14%;width:100%'>审核结果：" + ret[i]["arrange_checked"] + "</div></div></div>";
+
+                    if (ret[i]["arrange_checked"] == "未审核") {
+                        //这个div的ID以申请ID命名
+						html += "<div style = 'height:15%;width:100%' id='" + ret[i]["subscribe_id"] + "'>";
+						html += "<div class='divbtn' style='border-right:1px dashed #ffffff;' onclick='openMsgWin(" + '"'+ret[i]["dc_id"] + '"'+ "," + '"'+ ret[i]["pt_id"] + '"'+ ")'>详情</div>";
+						html += "<div class='divbtn' style='background:rgba(100,100,233,0.5);border-right:1px dashed #ffffff;' onclick='openCheckWin(" + '"' + ret[i]["id"] + '","' + ret[i]["subscribe_id"] + '","' + ret[i]["arrange_num"] + '","' + convertDate(ret[i]["arrange_time"]) +
+                            '","check_success' + '")' + "'>通过审核</div>";
+						html += "<div class='divbtn' style='background:rgba(12,243,47,0.5)' onclick='openCheckWin(" + '"' + ret[i]["id"] + '","' + ret[i]["subscribe_id"] + '","' + ret[i]["arrange_num"] + '","' + convertDate(ret[i]["arrange_time"]) +
+                            '","check_fail' + '")' + "'>驳回申请</div>";
+						html += "</div></li>";
+                    }
+					else {
+						//这个div的ID以申请ID命名
+						html += "<div style = 'height:15%;width:100%' id='" + ret[i]["subscribe_id"] + "'>";
+						html += "<div class='divbtn' style='background:rgba(12,243,47,0.5);width:100%;border-radius:0 0 10px 10px;' onclick='openMsgWin(" + '"'+ret[i]["dc_id"] + '"'+ "," + '"'+ ret[i]["pt_id"] + '"'+ ")'>详情</div>";
+						html += "</div></li>";
+					}
+                }
+                $api.byId("arrange_msg").innerHTML = html;
+            },
+            function(ret) {});
+    }
+
+    //转换日期
+    function convertDate(time) {
+        var date = new Date(time);
+        Y = date.getFullYear() + '-';
+        M = (date.getMonth() < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+        D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate()) + ' ';
+        h = (date.getHours() < 10 ? '0' + (date.getHours()) : date.getHours()) + ':';
+        m = (date.getMinutes() < 10 ? '0' + (date.getMinutes()) : date.getMinutes()) + ':';
+        s = date.getSeconds() < 10 ? '0' + (date.getSeconds()) : date.getSeconds();
+        return Y + M + D + h + m + s;
+    }
+
+    //查看详细信息
+    function openMsgWin(dc_id, pt_id) {
+        api.openWin({
+            name: 'check_message',
+            url: 'check_message.html',
+            pageParam: {
+                dc_id: dc_id,
+                pt_id: pt_id
+            }
+        });
+    }
+    //审核通过或驳回
+    function openCheckWin(id, subscribe_id, arrange_num, arrange_time, winname) {
+        check_subscribe = subscribe_id; //将申请ID赋值给该全局变量
+        api.openWin({
+            name: winname,
+            url: winname + '.html',
+            pageParam: {
+                id: id,
+                subscribe_id: subscribe_id,
+                arrange_num: arrange_num,
+                arrange_time: arrange_time,
+            }
+        });
+    }
+</script>
+
+</html>

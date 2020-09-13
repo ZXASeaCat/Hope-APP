@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style>
+    .reasontext{
+        background:-webkit-linear-gradient(left top,rgba(185,217,252,1),rgba(141,195,241,1),rgba(101,94,233,1));
+        box-shadow:4px 2px 4px rgba(63,72,204,1);
+        margin:10px;
+        text-align:center;
+        border-radius: 10px;
+        height:500px;
+        width:auto;
+        display:inline-block;
+    }
+    button {
+        background-color: green;
+        color: #FFFFFF;
+        overflow: hidden;
+        border: none;
+        outline: none;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    </style>
+</head>
+<body>
+    <header id="header" class="aui-bar aui-bar-nav aui-margin-b-15" style="background-color:#2caaef;">
+        <div class="aui-pull-left aui-btn" onclick="javascript:api.closeWin({name: 'check_fail'});">
+            <span class="aui-iconfont aui-icon-left">返回</span>
+        </div>
+    </header>
+	<div style = "margin:10px;text-align:center;">
+		<textarea id="reason" rows="20" cols="30" placeholder="请输入达不到审核要求的原因" class="reasontext"></textarea>
+	</div>
+	<div style = "text-align:center;">
+		<button style = "text-align:center;display:inline-block;" onclick = "subscribe()" style ="position:absolute;">提交</button>
+	</div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../script/aui-dialog.js" ></script>
+<script>
+let toast = new auiToast();
+let dialog = new auiDialog();
+apiready = function(){
+    $api.fixStatusBar($api.dom('header'));
+}
+function closeWin()
+{
+    toast.success({
+        title:"已处理该申请",
+        html:'<i class="aui-iconfont aui-icon-laud"></i>',
+        duration:2000
+    });
+    setTimeout(function(){
+        api.closeWin({
+            name: 'check'
+        });
+    	api.closeWin({
+    	    name: 'check_fail'
+    	});
+    },1800);
+}
+
+function subscribe()
+{
+	var reason = $api.byId("reason").value.trim();
+	if(reason)//不空
+	{
+		updateAPICloud("tb_subscribe",api.pageParam.id,{arrange_checked:"审核未通过"},function(){
+			insert("tb_fail_subscribe",{subscribe_id:api.pageParam.subscribe_id,reason:reason},function(){
+                //toast提交成功
+            });
+			api.execScript({
+			    name: 'check',
+                //关闭页面后，将管理员在check.html点击过的按钮变成灰色，且不能再使用
+			    script: "$api.css($api.eq($api.byId(check_subscribe), '1'),'background-color:#cccccc;color:#FFFFFF;pointer-events: none;');$api.css($api.eq($api.byId(check_subscribe), '2'),'background-color:#cccccc;color:#FFFFFF;pointer-events: none;');"
+			});
+			closeWin();
+		});
+	}
+    else
+    {
+        dialog.alert({
+            title:"提示",
+            msg:'请填写驳回原因',
+            buttons:['确定']
+        },function(ret){
+        });
+    }
+}
+</script>
+</html>

@@ -1,0 +1,252 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>AUI快速完成布局</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <style type="text/css">
+        .aui-list-item.wechat-top {
+            background-color: #f3f3f7;
+        }
+        .aui-list .wechat-avatar {
+            width:3rem;
+        }
+        .wechat-avatar .aui-row-padded {
+            background-color: #dddee0;
+            padding: 0.1rem;
+            border-radius: 0.2rem;
+            margin-left: -0.05rem;
+            margin-right: -0.05rem;
+        }
+        .wechat-avatar .aui-row-padded [class*=aui-col-xs-] {
+            padding: 0.05rem;
+        }
+        .wechat-avatar,
+        .wechat-avatar > img {
+            border-radius:0.2rem;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body{
+          font-size:16px;
+        }
+        .header{
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 99;
+            width: 100%;
+            height: 45px;
+            background: #21a4f4;
+        }
+        .header p{
+        margin-left:20px;
+        height: 45px;
+        line-height: 45px;
+        color: #fff;
+        font-size: 18px;
+        display:inline-block;
+        }
+        .header span{
+        color:#fff;
+        margin-right: 20px;
+        float: right;
+        line-height: 45px;
+        }
+        .content{
+        margin-top:45px;
+        }
+        .nav{
+        background-color: #fff;
+        }
+        .header-two{
+
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 99;
+        width: 100%;
+        height: 45px;
+        background: #21a4f4;
+        }
+        .header-two p{
+        margin-left:20px;
+        height: 45px;
+        line-height: 45px;
+        color: #fff;
+        font-size: 18px;
+        display:inline-block;
+        }
+        .header-two span{
+        color:#fff;
+        margin-left:6px;
+        line-height: 45px;
+        }
+        .header-two i{
+        color:#fff;
+        margin-left: 20px;
+        line-height: 45px;
+        }
+        .header-two input{
+        border:none;
+
+        width:80%;
+        background-color:transparent;
+        }
+        .sort_box-two{
+        display:block;
+        }
+        .input{
+        border-bottom: 2px #fff solid;
+        display: inline-block;
+        height: 42px;
+        width: calc(100% - 50px);
+        }
+        ul li{list-style: none;}
+        a{text-decoration: none;cursor: pointer;}
+        html{height: 100%;}
+        a,input,img,textarea,span,div{outline: 0;-webkit-tap-highlight-color:rgba(255,0,0,0);}
+
+    #letter{
+        width: 100px;
+        height: 100px;
+        border-radius: 5px;
+        font-size: 75px;
+        color: #555;
+        text-align: center;
+        line-height: 100px;
+        background: rgba(145,145,145,0.6);
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        margin:-50px 0px 0px -50px;
+        z-index: 99;
+        display: none;
+    }
+    #letter img{
+        width: 50px;
+        height: 50px;
+        float: left;
+        margin:25px 0px 0px 25px;
+    }
+    [class^="sort_box"]{
+    width: 100%;
+    padding-top: 45px;
+    overflow: hidden;
+
+    }
+    [class^="sort_list"]{
+    padding:10px 60px 10px 80px;
+    position: relative;
+    line-height: 50px;
+    border-bottom:1px solid #ddd;
+    }
+
+    [class^="sort_list"] .num_logo{
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: absolute;
+    left: 20px;
+    }
+    [class^="sort_list"] .num_logo img{
+    width: 50px;
+    height: 50px;
+    }
+    [class^="sort_list"] .num_name{
+    color: #000;
+    }
+    .sort_letter{
+    height: 30px;
+    line-height: 30px;
+    padding-left: 20px;
+    color:#787878;
+    font-size: 14px;
+    border-bottom:1px solid #ddd;
+    }
+    .initials{
+    position: fixed;
+    top: 47px;
+    right: 0px;
+    height: 100%;
+    width: 15px;
+    padding-right: 10px;
+    text-align: center;
+    font-size: 12px;
+    z-index: 99;
+    background: rgba(145,145,145,0);
+    }
+    .initials li img{
+    width: 14px;
+    }
+    </style>
+    <script type="text/javascript" src="../script/api.js"></script>
+    <script type="text/javascript" src="../script/hope/SHA1.js"></script>
+    <script type="text/javascript" src="../script/hope/RESTAPI.js"></script>
+    <script type="text/javascript" src="../script/hope/databaseUse.js"></script>
+    <script type="text/javascript" src="../script/hope/jquery.min.js"></script>
+    <script type="text/javascript" src="../script/hope/jquery.charfirst.pinyin.js"></script>
+    <script type="text/javascript" src="../script/hope/doctors_sort.js"></script>
+</head>
+<body>
+    <div id="letter" ></div>
+    <div class="aui-content aui-margin-b-15">
+        <ul class="aui-list aui-media-list" id="big">
+        </ul>
+    </div>
+    <div class="initials">
+        <ul>
+        </ul>
+    </div>
+</body>
+
+<script type="text/javascript">
+    apiready = function()
+    {
+	//获取到每个用户的名字和头像
+    query('tb_dcinformation',null,['dc_id','name','dc_tx','hospital','major','dc_professional'],null,null,function(ret){
+    	//绘制div
+    	let html = "";
+    	for(let n = 0;n<ret.length;n++)
+    	{
+    		html += '<li class="aui-list-item aui-list-item-middle" onclick = openChatWin("'+ret[n]["dc_id"]+'","'+ret[n]["name"]+'","'+ret[n]["dc_tx"]+'")>';
+    		html += '<div class="aui-media-list-item-inner">';
+    		html += '<div class="aui-list-item-media wechat-avatar">';
+    		html += '<img src="'+ret[n]["dc_tx"]+'" />';
+    		html += '</div>';
+    		html += '<div class="aui-list-item-inner">';
+    		html += '<div class="aui-list-item-text"><div class="aui-list-item-title" style="font-size:18px;">'+ret[n]["name"]+'</div></div>';
+            html += '<div class="aui-list-item-text aui-ellipsis-2" style="font-size:12px;">'+ret[n]["hospital"]+'&nbsp;&nbsp;&nbsp;&nbsp;'+ret[n]["major"]+'&nbsp;&nbsp;&nbsp;&nbsp;'+ret[n]["dc_professional"]+'</div>';
+    		html += '</div></div></li>';
+    	}
+    	//赋值到id为big 的节点
+    	document.getElementById("big").innerHTML += html;
+        //对列表排序
+        sortList();
+    },function(){});
+
+    }
+
+    function openChatWin(friendId,friendName,friendTx)
+    {
+        api.openWin({
+            name: 'lt',
+            url: 'lt.html',
+            pageParam: {
+                myId : $api.getStorage('dc_id'),
+                myName : $api.getStorage('name'),
+                myTx : $api.getStorage('dc_tx'),
+                friendId : friendId,
+                friendName : friendName,
+                friendTx : friendTx,
+            }
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <style type="text/css">
+        #tx {
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: inline;
+            position: absolute;
+            top: 7px;
+            left: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="aui-bar aui-bar-nav" id="head" style="position:absolute" >
+        <a class="aui-btn aui-pull-left" tapmode onclick="closeWin()"> <span class="aui-iconfont aui-icon-left"></span> </a>
+        <div class="aui-title">
+            <!--<img src="../res/tx1.jpg" id="tx"/> 无-->
+        </div>
+    </header>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type='text/javascript' src='../script/hope/jquery.min.js'></script>
+<script type="text/javascript">
+    apiready = function() {
+        api.parseTapmode();
+        var myId, friendId, myName, friendName, myTx, friendTx, html = '';
+        myId = api.pageParam.myId;
+        myName = api.pageParam.myName;
+        myTx = api.pageParam.myTx;
+        friendId = api.pageParam.friendId;
+        friendName = api.pageParam.friendName;
+        friendTx = api.pageParam.friendTx;
+        html = friendName;
+        $api.html($api.dom('.aui-title'), html);
+        $api.fixStatusBar($api.dom('.aui-bar-nav'));
+        $api.fixStatusBar($api.byId('head'));
+        var head_h = $api.offset($api.byId('head')).h;
+        api.openFrame({
+            name: 'lt_frame',
+            url: 'lt_frame.html',
+            bgColor: 'f5f5f5',
+            rect: {
+                x: 0,
+                y: head_h,
+                w: 'auto',
+                h: api.winHeight - head_h - 57
+            },
+            hScrollBarEnabled: false,
+            vScrollBarEnabled: false,
+            pageParam: {
+                head_h: head_h,
+                myId: myId,
+                friendId: friendId,
+                myName: myName,
+                friendName: friendName,
+                myTx: myTx,
+                friendTx: friendTx,
+                ltWinHeight: api.winHeight //整个页面的大小
+            }
+        });
+        //监听手机返回键
+        api.addEventListener({
+            name: 'keyback'
+        }, function (ret, err) {
+            closeWin();
+        });
+                /*
+                function exit() {
+            if (!exitStatu) {
+                exitStatu = 1;
+                api.toast({
+                    msg: "再按一次返回键退出程序",
+                    duration: 2000,
+                    location: 'bottom'
+                });
+                setTimeout(function () {
+                    exitStatu = null;
+                }, 2000)
+            } else if (exitStatu == 1) {
+                api.closeWidget({
+                    silent: true
+                });
+            }
+        }*/
+    };
+
+    function closeWin(){
+        let jsfun = 'hhxx();';
+        api.execScript({
+            name: 'main',
+            frameName: 'wechat',
+            script: jsfun
+        });
+        api.closeWin({});
+    }
+</script>
+
+</html>

@@ -1,0 +1,263 @@
+<!--获取病人和医生的详细信息
+
+-->
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" type="text/css" href="../../css/api.css"/>
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css"/>
+    <link rel="stylesheet" type="text/css" href="../../css/views.css"/>
+	<style type="text/css">
+	html, body{
+		width:100%;
+		height:100%;
+		background-color:rgba(255,255,255,1);
+	}
+	.header{
+		height:50px;
+		width:100%;
+		background-color:#fff;
+		position:relative;
+		text-align:center;
+		line-height:50px;
+		margin:10px auto;
+	}
+	.main{
+		width:100%;
+		height:52%;
+		background-color:#fff;
+		position:relative;
+		padding:2%;
+		text-align:center;
+	}
+	/*
+
+	.center{
+		height:400px;
+		margin:0 305px 0 205px;
+		background-color:#123456;
+	}
+
+	*/
+	.card{
+		margin:0 auto;
+		height:90%;
+		width:92%;
+		background-color: #ffffff;
+		border-radius: 10px;
+		padding:1%;
+		box-shadow:0 0 4px rgba(63,72,204,1);
+	}
+	.small-card{
+
+		height:99%;
+		width:99%;
+		background-color: #ffffff;
+		border-radius: 10px;
+	}
+	#left1{
+		width:36%;
+		height:100%;
+		background-color:rgba(63,151,255,1);
+		border-radius: 10px 0px 0px 10px;
+		float:left;
+		vertical-align:center;
+		text-align:center;
+	}
+	#left2{
+		width:36%;
+		height:100%;
+		background-color:rgba(63,151,255,1);
+		border-radius: 10px 0px 0px 10px;
+		float:left;
+		vertical-align:center;
+		text-align:center;
+	}
+	.right{
+		width:64%;
+		height:100%;
+		background-color:rgba(255,255,255,1);
+		border-radius: 0px 10px 10px 0px;
+		float:left;
+		padding:0px 0px;
+		text-align:center;
+	}
+	.msg1{
+		width:90%;
+		height:8%;
+		text-align:left;
+		border-bottom:1px solid rgba(63,151,255,1);
+		font-size:90%;
+		height:auto;
+	}
+	.msg2{
+		width:90%;
+		height:8%;
+		text-align:left;
+		border-bottom:1px solid rgba(63,151,255,1);
+		font-size:90%;
+		height:auto;
+	}
+
+	.picdiv {
+		width: 100%;
+		height: 100%;
+		border-radius:50%;
+		border: lpx solid red;
+	}
+	.picdiv img{
+		width:80%;
+		height:auto;
+		border-radius:50%;
+		margin:30% 4% 30% 16%;
+	}
+	.ecg-card{
+		height:80%;
+		width:94%;
+		background-color: #ffffff;
+		margin:5% 1%;
+		border: 1px solid #ffffff;
+		border-radius: 10px;
+		border:1px solid rgba(63,151,255,1);
+		padding:4px 4px;
+		box-shadow:0 0 4px rgba(63,72,204,1);
+	}
+	.ecg-small-card{
+		height:99%;
+		width:99%;
+		background-color: #000000;
+		border: 1px solid #ffffff;
+		border-radius: 10px;
+		box-shadow:0 0 4px rgba(63,72,204,1);
+	}
+	.btn{
+		background-color: rgba(87, 174, 83, 1);
+	}
+	</style>
+</head>
+<body>
+	<header id="header" class="aui-bar aui-bar-nav">
+		<div class="aui-pull-left aui-btn" onclick="javascript:api.closeWin({name: 'check_message'});">
+			<span class="aui-iconfont aui-icon-left"></span>
+		</div>
+		<div style="position: absolute; left: 50%; transform: translateX(-50%);">详细信息</div>
+	</header>
+	<div class="views-info" style="padding-top:0px">
+		<div class="views-info-item">
+		  <i class="views-iconfont views-icon-detail"></i>
+		  <span class="views-margin-l-5">病人详情</span>
+		</div>
+	</div>
+	<div class="main">
+		<div class="card">
+			<div class="small-card">
+				<div id="left1">
+					<div class='picdiv'>
+						<img id="pt_tx" src="../image/patient_TX.png" />
+					</div>
+				</div>
+				<div class="right">
+					<div class='msg1' id='pt_name'>姓名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' id='pt_sex'>性别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' id='pt_nation'>民族&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' id='age'>年龄&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' style='height:auto;' id='pt_birthday'>出生年月&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' id='pt_id'>患者ID&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' id='pt_hs1'>药物过敏史：</div>
+					<div class='msg1' id='pt_hs2'>既往病史&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' id='ptprofile'>现病史&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' style='height:auto;' id='infohs1'>入院时间&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg1' style='height:auto;' id='infohs2'>预计出院&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="views-info" style="padding-top:0px">
+		<div class="views-info-item">
+		  <i class="views-iconfont views-icon-detail"></i>
+		  <span class="views-margin-l-5">申请人详情</span>
+		</div>
+	</div>
+	<div class="main">
+		<div class="card">
+			<div class="small-card">
+				<div id="left2">
+					<div class='picdiv'>
+						<img id="dc_tx" src="../image/patient_TX.png" />
+					</div>
+				</div>
+				<div class="right">
+					<div class='msg2' id='name'>姓名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='dc_sex'>性别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='pt_nation'>民族&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='tel'>手机&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='email'>电子邮箱：</div>
+					<div class='msg2' id='dc_id'>医生ID&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='hospital'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='major'>科室&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' id='dc_professional'>职位&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：</div>
+					<div class='msg2' style='height:auto;' id='dc_field'>个人领域：</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type='text/javascript' src='../../script/hope/jquery.min.js'></script>
+<script>
+apiready = function()
+{
+	$api.fixStatusBar($api.dom('header'));
+	//console.log(api.pageParam.dc_id);
+	var doc =  ["dc_tx","name","dc_id","dc_sex",'tel',"email","hospital","major","dc_professional","dc_field"];
+	var patient = ["pt_tx","infohs1","infohs2","pt_birthday","pt_name","pt_id","pt_sex","pt_nation","age","ptprofile","pt_hs2","pt_hs1"];
+	query("tb_patient",{pt_id:api.pageParam.pt_id},patient,null,null,function(ret){
+		$api.byId(patient[0]).src = ret[0][patient[0]];
+		$api.byId(patient[1]).innerHTML += convertDay(ret[0][patient[1]]);
+		$api.byId(patient[2]).innerHTML += convertDate(ret[0][patient[2]]);
+		$api.byId(patient[3]).innerHTML += convertDate(ret[0][patient[2]]);
+		for(var i = 4;i<patient.length-1;i++)
+			$api.byId(patient[i]).innerHTML += ret[0][patient[i]];
+		// let height = $("#left1").height() / $(".msg1").length;
+		// $(".msg1").each(function(){
+		// 	$(this).height(height) ;
+		// });
+	},function(err){  });
+	query("tb_dcinformation",{dc_id:api.pageParam.dc_id},doc,null,null,function(ret){
+		$api.byId(doc[0]).src = ret[0][doc[0]];
+		for(var i = 1;i<doc.length;i++)
+			$api.byId(doc[i]).innerHTML += ret[0][doc[i]];
+	},function(err){  });
+}
+//转换日期
+function convertDate(time)
+{
+	var date = new Date(time);
+	Y = date.getFullYear() + '-';
+	M = (date.getMonth() < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+	D = (date.getDate() < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ';
+	h = (date.getHours() < 10 ? '0'+(date.getHours()) : date.getHours()) + ':';
+	m = (date.getMinutes() < 10 ? '0'+(date.getMinutes()) : date.getMinutes()) + ':';
+	s =  date.getSeconds() < 10 ? '0'+(date.getSeconds()) : date.getSeconds();
+	return Y+M+D+h+m+s;
+}
+
+function convertDay(time)
+{
+	var date = new Date(time);
+	Y = date.getFullYear() + '-';
+	M = (date.getMonth() < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+	D = (date.getDate() < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ';
+	return Y+M+D;
+}
+
+
+</script>
+</html>

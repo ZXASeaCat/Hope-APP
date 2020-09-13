@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../css/views.css">
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style>
+        body {
+            background-color: #FFFFFF;
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+        }
+        .setdiv{
+            background:-webkit-linear-gradient(left top,rgba(122,195,248,1),rgba(246,227,247,1),rgba(122,195,248,1));
+            margin:2% 2% 0 2%;
+            text-align:center;
+            border-radius: 10px;
+            height:90%;
+            width:96%;
+            display:inline-block;
+            position: absolute;
+        }
+        button {
+            background-color: rgba(101,94,233,1);
+            color: #FFFFFF;
+            overflow: hidden;
+            border: none;
+            outline: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        @media(max-width: 360px) {
+            .form-control {
+                font-size: 10px;
+                padding: 0 5px;
+            }
+        }
+        @media(max-width: 320px) {
+            .col-xs-6 {
+                padding: 0 5px;
+            }
+        }
+        input[type=text]{
+          border: none;
+        }
+        .float{
+            float:left;
+            width : 100;
+            height: 100;
+            overflow: hidden;
+            border: 1px solid #CCCCCC;
+            border-radius: 10px;
+            padding: 5px;
+            margin: 5px;
+        }
+        .result{
+            width: 100px;
+            height: 100px;
+            box-sizing: border-box;
+            display: none;
+        }
+        .reasontext{
+            background:-webkit-linear-gradient(left top,rgba(185,217,252,1),rgba(141,195,241,1),rgba(101,94,233,1));
+            box-shadow:4px 2px 4px rgba(63,72,204,1);
+            margin:1% 5.5%;
+            text-align:center;
+            border-radius: 10px;
+            height:100%;
+            width:89%;
+            display:inline-block;
+        }
+    </style>
+</head>
+<body>
+    <header id = "header" class="aui-bar aui-bar-nav">
+        <div class="aui-pull-left aui-btn" onclick = "javascript:api.closeWin({name: 'guidang'});">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style = "position: absolute; left: 50%; transform: translateX(-50%);">归档会诊意见</div>
+    </header>
+    <div class="setdiv" id="div" style = "text-align:center;">
+        <input id="subscribe_id"  type="text" placeholder="申请单号" style="margin:2% 8%;width:84%;height:50px;background:#fff;border-radius:10px;text-align:center;" value = "">
+        <div style = "height:75%;margin:10px;text-align:center;">
+            <textarea id="suggestion" rows="20" cols="30" placeholder="请输入会诊意见" class="reasontext"></textarea>
+        </div>
+        <button style="margin:3% 3% 0 auto;" onclick = "isUserExist('查询')" >查询</button>
+        <button style="margin:3% auto 0 3%;" onclick = "isUserExist('提交')" >提交</button>
+    </div>
+</body>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery.min.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../script/aui-dialog.js" ></script>
+<script type="text/javascript">
+var i = 0;
+let toast = new auiToast();
+apiready = function() {
+    $api.fixStatusBar($api.byId('header'));
+    api.parseTapmode();
+};
+
+
+
+//监听用户输入的患者ID是否存在
+function isUserExist(str){
+    let subscribe_id = "";//为了使该变量的类型变成string
+    subscribe_id =($api.byId("subscribe_id")).value;
+    //判断输入是否空白
+    if(subscribe_id.replace(/\s*/g,"") != "")
+    {
+        var client = new Resource();
+        var Model = client.Factory("tb_subscribe");
+        Model.query({
+            filter:{
+                where:{
+                    "subscribe_id":subscribe_id,
+                },
+                fields:["subscribe_id"],
+            }
+            },function (ret,err) {
+                if(ret[0] && ret[0]["subscribe_id"])
+                {
+                    if(str=="提交")
+                    {
+                        let dc_id = $api.getStorage('dc_id');
+                        let suggestion = "";//为了使该变量的类型变成string
+                        suggestion = ($api.byId("suggestion")).value;
+                        if(suggestion.replace(/\s*/g,"") != "")
+                        {
+                            updateOrInsert("tb_suggestion",{subscribe_id:subscribe_id,dc_id:dc_id},{suggestion:suggestion},function(ret){
+                                toast.success({
+                                    title:"已修改意见",
+                                    duration:2000
+                                });
+                            },function(ret){
+                                toast.success({
+                                    title:"已提交意见",
+                                    duration:2000
+                                });
+                            });
+                        }
+                        else {
+                            toast.fail({
+                                title:"请填写意见",
+                                duration:2000
+                            });
+                        }
+                    }
+                    else{
+                        let dc_id = $api.getStorage('dc_id');
+                        query("tb_suggestion",{subscribe_id:subscribe_id,dc_id:dc_id},["suggestion"],null,null,function(ret){
+                            console.log(JSON.stringify(ret))
+                            if(ret && ret[0]["suggestion"])
+                                ($api.byId("suggestion")).value = ret[0]["suggestion"];
+                            else
+                                toast.fail({
+                                    title:"您在该次会诊中未提交过任何意见",
+                                    duration:2000
+                                });
+                        },function(ret){
+                            toast.fail({
+                                title:"您在该次会诊中未提交过任何意见",
+                                duration:2000
+                            });
+                        })
+                    }
+                }
+                else {
+                    toast.fail({
+                        title:"申请单号不存在",
+                        duration:2000
+                    });
+                }
+            });
+    }
+    else {
+        toast.fail({
+            title:"申请单号不可为空",
+            duration:2000
+        });
+    }
+}
+
+</script>
+</html>

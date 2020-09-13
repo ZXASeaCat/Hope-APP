@@ -1,0 +1,62 @@
+ <widget id="A6035745034837"  version="0.0.1">    <name>JOJO</name>    <description>        Example For APICloud.    </description>    <author email="developer@apicloud.com" href="http://www.apicloud.com">        Developer    </author>
+
+    <!--融云配置-->
+    <feature name="rongCloud2">
+        <param name="appKey" value="cpj2xarlchbmn" />
+    </feature>
+    <intent-filter>
+        <action name="android.intent.action.VIEW"/>
+        <category name="android.intent.category.DEFAULT"/>
+        <data scheme="rong" host="io.rong.fast" pathPrefix="/conversation/"/>
+    </intent-filter>
+    <intent-filter>
+       <action name="android.intent.action.VIEW" />
+       <category name="android.intent.category.DEFAULT" />
+       <data host="com.a2389814714.zty" path="/conversationlist" scheme="rong" />
+    </intent-filter>
+    <intent-filter>
+        <action name="android.intent.action.VIEW" />
+        <category name="android.intent.category.DEFAULT" />
+        <data host="com.a2389814714.zty" pathPrefix="/push_message" scheme="rong" />
+    </intent-filter>
+
+
+    <preference name="customRefreshHeader" value="UIPullRefreshFlash"/>
+
+    <!--验证码配置-->
+    <meta-data name="Mob-AppKey" value="2e1e9b9c9ddb2"/>
+    <meta-data name="Mob-AppSecret" value="12054053225c62b31b2c6d698ceb23f4"/>
+
+
+    <content src="index.html"/>
+    <preference name="pageBounce" value="false"/>
+    <preference name="appBackground" value="rgba(0,0,0,0.0)"/>
+    <preference name="windowBackground" value="rgba(0,0,0,0.0)"/>
+    <preference name="frameBackgroundColor" value="rgba(0,0,0,0.0)"/>
+    <preference name="hScrollBarEnabled" value="true"/>
+    <preference name="vScrollBarEnabled" value="true"/>
+    <preference name="autoLaunch" value="true"/>
+    <preference name="fullScreen" value="false"/>
+    <preference name="autoUpdate" value="true"/>
+    <preference name="smartUpdate" value="false"/>
+    <preference name="debug" value="true"/>
+    <preference name="iOS7StatusBarAppearance" value="true"/>
+    <permission name="readPhoneState"/>
+    <permission name="call"/>
+    <permission name="sms"/>
+    <permission name="camera"/>
+    <permission name="record"/>
+    <permission name="location"/>
+    <permission name="fileSystem"/>
+    <permission name="internet"/>
+    <permission name="bootCompleted"/>
+    <permission name="hardware"/>
+    <permission name="contact"/>
+    <preference name="appBackground" value="#eee"/>
+    <preference name="windowBackground" value="#eee"/>
+    <preference name="frameBackgroundColor" value="rgba(0,0,0,0.0)"/>
+
+    <preference name="softInputMode" value="resize"/>
+    <preference name="statusBarAppearance" value="true"/><!--防止lt.frame.html的顶部导航被上移-->
+    <access origin="*"/>
+</widget>

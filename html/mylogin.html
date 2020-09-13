@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+  <title>title</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/views.css">
+<style>
+body{
+    width: 100%;
+    height: 100%;
+}
+</style>
+</head>
+<body style = "background-color:#ffffff">
+    <img style="margin:35% auto 0 auto;width:100%;height:25%;" src='../image/LOGO.png' />
+    <form style="margin:0 auto;" action="" method="">
+      <div class="views-list-item-input" style="margin:10% 0px 0px 0px;">
+        <input id="dcId" placeholder="工号" type="text" style="border:1px solid gray;border-radius:10px;margin:0px auto 10% auto;width:85%;">
+        <input id="password" placeholder="密码" type="password" style="border:1px solid gray;border-radius:10px;margin:10% auto 0px auto;width:85%;">
+        <div style="margin:5% auto 0px auto;text-align:center;width:85%">
+          <span style="float:left;">
+            <label for="rememberpassword">记住密码</label>
+            <input type="checkbox" class="views-checkbox" id="rememberpassword" style="">
+          </span>
+          <span style="float:right;">
+            <label for="autologin">自动登录</label>
+            <input type="checkbox" class="views-checkbox" id="autologin">
+          </span>
+        </div>
+        <div style="margin:10% auto 0px auto;text-align:center;width:85%;" onclick = "login()">
+          <div class="views-btn views-btn-primary" style="font-size:22.5px;margin-top:6%;padding-top:7.5px;height:45px;border-radius:45px">&ensp;&ensp;登录&ensp;&ensp;</div>
+        </div>
+      </div>
+      <a style="float:right;margin:5% 2.5% 0px 0px;">忘记密码？</a> <!--跳转到填手机号码和验证码的界面-->
+    </form>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/aui-tab.js"></script>
+<script type='text/javascript' src='../script/hope/RESTAPI.js' ></script>
+<script type="text/javascript" src="../script/hope/SHA1.js" ></script>
+<script type="text/javascript" src="../script/hope/jquery.min.js" ></script>
+<script type="text/javascript">
+var moduleSMSSDK,rong;
+apiready = function()
+{
+    //moduleSMSSDK = api.require('smssdk');
+    rong = api.require('rongCloud2');
+
+    rong.disconnect({
+        isReceivePush: true
+    }, function(ret, err) {
+        //console.log(JSON.stringify(ret)+" --- "+JSON.stringify(err));
+    }); // 断开，且不再接收 Push
+    //如果勾选过“记住密码”，那就自动填写密码
+    api.addEventListener({
+            name : 'keyback'
+        }, function(ret, err) {
+            api.toast({
+                    msg : '再点击一次退出应用',
+                    duration : 2000,
+                    location : 'bottom'
+            });
+            api.addEventListener({
+                    name : 'keyback'
+            }, function(ret, err) {
+                    api.closeWidget({
+                            silent : true
+                    });
+            });
+            setTimeout(function() {
+                    api.closeWidget({});
+            }, 2000)
+    });
+};
+
+window.onload=function (){
+    var localRememberPassword = $api.getStorage('localRememberPassword');
+    if(localRememberPassword){
+        ($api.byId('rememberpassword')).checked = true;
+        ($api.byId('dcId')).value = $api.getStorage('localRememberUserId');
+        ($api.byId('password')).value = localRememberPassword;
+    }
+}
+
+//用户登录后转到main.html
+//不传入参数，但要用的参数都用setStorage保存到本地
+function login() {
+    //var userId = $api.val($api.byId('userId'));
+    var dcId = $api.val($api.byId('dcId'));;
+    var password = $api.val($api.byId('password'));
+    var returnParams = ["id","dc_tx","name","dc_id","dc_sex",'tel',"email","hospital","major","dc_professional","dc_field"];//登录后要返回的参数
+    //下次打开app，用户名和密码自动填好
+    if(($api.byId('rememberpassword')).checked){
+      $api.setStorage('localRememberUserId',dcId);
+      $api.setStorage('localRememberPassword',password);
+    }
+    //下次打开app，自动登录
+    if(($api.byId('autologin')).checked){
+      $api.setStorage('AutoLoginUserId',dcId);
+    }
+
+
+    var app = {appId:"",encryptAppKey:""};
+    getAppConfig(app);
+    var client = new Resource();
+    var Model = client.Factory("tb_dcinformation");
+    //根据用户名和密码登录
+    Model.query({
+        filter:{
+            where:{
+                "dc_id":dcId,
+                "pwd":password,
+            },
+            fields:returnParams,
+        }
+        },function (ret,err) {
+        //登录成功后，返回
+        if(ret[0] && ret[0]["dc_id"])
+        {
+              //保存以下所有参数，以便在后面的页面使用
+              for(var n=0;n<returnParams.length;n++)
+              {
+                  $api.setStorage(returnParams[n],ret[0][returnParams[n]]);
+              }
+              //默认的用户头像保存到本地savePath
+              api.download({
+                  url: ret[0]["dc_tx"],
+                  savePath: '/storage/emulated/0/Android/data/hope/dc_tx.jpg',
+                  report: true,
+                  cache: true,
+                  allowResume: true
+              }, function(ret, err) {
+                  if (ret.state == 1) {
+                      $api.setStorage('local_dc_tx','/storage/emulated/0/Android/data/hope/dc_tx.jpg');
+                  }
+              });
+
+                    //获取融云token并保存
+            getToken(dcId,dcId)
+
+        }
+        else {
+            api.toast({
+                    msg : '用户名或密码错误',
+                    duration : 2000,
+                    location : 'bottom'
+            });
+        }
+    });
+}
+
+//获取融云的token
+function getToken(userId,userName){
+    let rong_appkey = api.loadSecureValue({
+        sync: true,
+        key: 'rong_appkey'
+    });
+    let rong_skey = api.loadSecureValue({
+        sync: true,
+        key: 'rong_skey'
+    });
+    let rong_random = Math.random();
+    rong_random = rong_random.toString().substring(2,8);
+    let rong_second = parseInt(new Date().getTime()/1000);
+    let rong_str = rong_skey+rong_random+rong_second;
+    rong_str = SHA2(rong_str);
+    api.ajax({
+            url:"http://api.cn.ronghub.com/user/getToken.json",//融云Http请求
+            method:"POST",
+            Host: "api-bj.ronghub.com",
+            headers: {
+            "App-Key":rong_appkey,			//开发者平台分配的 App Key。
+            "Nonce": rong_random,			//随机数
+            "Timestamp": rong_second,		//时间戳，从 1970 年 1 月 1 日 0 点 0 分 0 秒开始到现在的毫秒数。
+            "Signature": rong_str,			//数据签名,使用SHA1哈希加密
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        data:{
+            values:{
+                "userId":userId,
+                "name":userName,
+            }
+        }
+        },function(ret,err){
+            let rongToken=ret.token;
+            console.log("得到融云token："+rongToken);
+            $api.setStorage(userId+"_rong_token",rongToken);
+            api.openWin({
+                reload : true,
+                name : 'main',
+                url : 'main.html',
+                vScrollBarEnabled : false,
+            });
+    });
+}
+</script>
+</html>

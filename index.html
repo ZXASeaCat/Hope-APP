@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="css/aui.css" />
+</head>
+<body>
+<script type="text/javascript" src="script/aui.js"></script>
+<script type="text/javascript" src="script/api.js"></script>
+<script type='text/javascript' src='script/hope/SHA1.js'></script>
+<script type='text/javascript' src='script/hope/RESTAPI.js' ></script>
+<script type="text/javascript" src="script/hope/databaseUse.js"></script>
+<script type='text/javascript' src='script/hope/jquery.min.js' ></script>
+<script type="text/javascript">
+apiready = function(){
+        // $api.rmStorage('localRememberUserId');
+        // $api.rmStorage('localRememberPassword');
+        // $api.rmStorage('AutoLoginUserId');
+        autoLogin();
+}
+
+
+//记得退出时要清除localRememberUserId，不用清除记住密码，记得传参
+//还要清除掉相关的user参数
+//自动登录进入主页，或跳转到登录页
+function autoLogin(){
+    //AutoLoginUserId————记录了当前自动登录的用户id
+    var myId = $api.getStorage('AutoLoginUserId');
+    if($api.getStorage('AutoLoginUserId'))
+    {
+        api.openWin({
+                reload : true,
+                name : 'main',
+                url : 'html/main.html',
+                hScrollBarEnabled : false,
+        });
+    }
+    //进入登录页
+    else{
+        api.openWin({
+                reload : true,
+                name : 'mylogin',
+                url : 'html/mylogin.html',
+                hScrollBarEnabled : false
+        });
+    }
+}
+
+</script>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/views.css"/>
+	<style type="text/css">
+    body {
+        background-color: #FFFFFF;
+        position: fixed;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+    }
+
+    .insertleft {
+        float: left;
+        width: 350px;
+    }
+
+    .insertright {
+        float: right;
+        width: calc(100% - 350px);
+        text-align: center;
+    }
+
+    select {
+        margin: 2.5% 3.5%;
+        width: 25%;
+        /*display:inline-block;*/
+        text-align: center;
+        text-align-last: center;
+        background-color: #00FFFF;
+        color: #FFFFFF;
+        border-radius: 10px;
+        float: left;
+        height:60%;
+    }
+
+    button {
+        background-color: green;
+        color: #FFFFFF;
+        margin: 2% 6%;
+        padding: 0;
+        text-align: center;
+        width: 70px;
+        height: 40px;
+        overflow: hidden;
+        border: none;
+        outline: none;
+        border-radius: 5px;
+        display: inline-block;
+    }
+
+    option {
+        margin: 0;
+        padding: 0;
+        width: 150px;
+        height: 40px;
+        font-size: 20px;
+        display: inline-block;
+        border-radius: 10px;
+        padding-top: 10px;
+    }
+		.doctor{
+			margin:2px;
+			border-radius: 5px;
+			border:1px solid green
+		}
+        .mytime{
+            border-radius: 10px;
+            text-align-last: center;
+            border:1px solid green;
+            display:inline-block;
+            width:300px;
+            /*width:57%;
+            height:8%;
+            border-radius: 10px;
+            margin:1% 1%;
+            text-align-last: center;
+            border:2px solid green;*/
+        }
+        .card{
+            height:36%;
+            width:98%;
+            background:-webkit-linear-gradient(left top,rgba(185,217,252,1),rgba(141,195,241,1),rgba(101,94,233,1));
+            box-shadow:4px 2px 4px rgba(63,72,204,1);
+            margin:20px 0 ;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        img{
+            width:80%;
+            height:auto;
+            margin:30% 4% 30% 16%;
+        }
+        .divbtn{
+            float:left;height:100%;width:33.3%;color:#ffffff;text-align:center;line-height:220%;font-size:20px;border-top:1px dashed #ffffff;
+            background:rgba(255, 255, 255, 0.3);
+        }
+	</style>
+</head>
+<body>
+    <header id="header" class="aui-bar aui-bar-nav">
+        <div class="aui-pull-left aui-btn" onclick="javascript:api.closeWin({name: 'management'});">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style="position: absolute; left: 50%; transform: translateX(-50%);">预约审查</div>
+    </header>
+    <header class="aui-bar aui-bar-nav aui-bar-light">
+        <div class="aui-title">
+            <div class="aui-bar aui-bar-btn" style="margin:2% auto;width:80%;">
+                <div class="aui-bar-btn-item">我的申请</div>
+                <div class="aui-bar-btn-item aui-active">我的预约</div>
+            </div>
+        </div>
+    </header>
+    <div style="width:100%;height:10%;">
+		<input readonly="readonly" class="mytime" style="height:60%;margin:0% 3.5%;width:57%;border-radius: 10px;text-align-last: center;border:1px solid green;display:inline-block;" type="text" id="select-time" placeholder="-时间-">
+		<button onclick="getQuery()">查询</button>
+    </div>
+	<ul id="arrange_msg" style="overflow:scroll;position:absolute;top:22%;width:94%;height:76%;border:none;margin:2%">
+	</ul>
+</body>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="../../script/hope/jdate.min.js"></script>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/aui-tab.js" ></script>
+<script>
+let pageIndex = 2;//1代表申请页，2代表预约页
+window.onload = function() {
+    new Jdate({
+        el: '#select-time',
+        format: 'YYYY-MM-DD',
+        beginYear: 2020,
+        endYear: 2100,
+    });
+};
+apiready = function(){
+    $api.fixStatusBar($api.dom('header'));
+    api.parseTapmode();
+    var bar = document.querySelectorAll(".aui-bar-btn");
+    if(bar){
+        for(var i=bar.length-1; i>=0;i--){
+            var tab = new auiTab({
+                element:bar[i],
+                repeatClick:true
+            },function(ret){
+                if(ret["index"]==1){
+                    //搜索申请订单
+                    pageIndex = 1;
+                    //console.log('申请');
+                }
+                else {
+                    //搜索被预约订单
+                    pageIndex = 2;
+                    //console.log('被预约');
+                }
+            });
+        }
+    }
+}
+function getQuery(){
+    if(pageIndex==1)
+        getMySubscribe();
+    else
+        getMyConsultation();
+}
+function getMySubscribe()
+{
+	$api.byId("arrange_msg").innerHTML = "";
+	//确定查询条件
+    var select_time = $api.byId("select-time").value;
+    var where = {};
+    where["dc_id"] = $api.getStorage('dc_id');
+    if(select_time != "")
+    {
+		//时间段
+		var time1 = new Date(select_time + " 00:00:00");
+		var time2 = new Date(select_time + " 23:59:59");
+        where["arrange_time"] = {"between":[time1.toString(),time2.toString()]};
+    }
+
+	//开始查找c
+    query("tb_subscribe",where,null,null,null,
+        function(ret){
+            //console.log(JSON.stringify(ret));
+			var html = "";
+			for(var i = 0;i<ret.length;i++)
+			{
+				//html += "<li  style='margin:2px;border-radius: 5px;border:1px solid green'>";
+				//html += "<div>医生："+ret[i]["dc_id"]+"</div>";
+				//html += "<div>病人："+ret[i]["pt_id"]+"</div>";
+				//html += "<div>会诊安排时间："+ convertDate(ret[i]["arrange_time"])+"</div>";
+				//html += "<div>审核结果："+ ret[i]["arrange_checked"]+"</div>";
+				//html += "<button onclick='subscribeMsg("+'"'+ret[i]["subscribe_id"]+'","'+ret[i]["arrange_checked"]+'"'+")'>详细信息</button>";//html += "<button onclick='subscribeMsg("+ret[i]+")'>详细信息</button>";
+				//html += "</li>";
+
+                html += "<li class='card'><div style='height:75%;width:100%'><div style='float:left;color:#ffffff;height:100%;width:20%'><img src='../../image/subscribe.png'/></div>";
+                html += "<div style='float:left;color:#ffffff;height:100%;width:71%;margin:0 auto;padding:0 0 0 5%'>";
+                html += "<div style='height:19%;width:100%'>申请单号&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["subscribe_id"] + "</div>";
+                html += "<div style='height:19%;width:100%'>医生ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["dc_id"] + "</div>";
+                html += "<div style='height:19%;width:100%'>病人ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["pt_id"] + "</div>";
+                html += "<div style='height:19%;width:100%'>安排时间&nbsp;&nbsp;&nbsp;&nbsp;：" + convertDate(ret[i]["arrange_time"]) + "</div>";
+                html += "<div style='height:19%;width:100%'>审核结果&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["arrange_checked"] + "</div></div></div>";
+                html += "<div style = 'height:25%;width:100%' id='" + ret[i]["subscribe_id"] + "'>";
+                html += "<div class='divbtn' style='background:rgba(12,243,47,0.5);width:100%;border-radius:0 0 10px 10px;' onclick='subscribeMsg("+'"'+ret[i]["subscribe_id"]+'","'+ret[i]["arrange_checked"]+'"'+")'>详情</div>";
+                html += "</div></li>";
+			}
+			$api.byId("arrange_msg").innerHTML = html;
+    	},function(ret){
+            //console.log(JSON.stringify(ret));
+	});
+}
+
+function getMyConsultation()
+{
+	$api.byId("arrange_msg").innerHTML = "";
+	//确定查询条件
+    var select_time = $api.byId("select-time").value;
+    var where = {};
+    var classlinkwhere = {};
+    where["doctors"] = {"inq": [$api.getStorage('id')]};
+    if(select_time != "")
+    {
+		//时间段
+		var time1 = new Date(select_time + " 00:00:00");
+		var time2 = new Date(select_time + " 23:59:59");
+        classlinkwhere["arrange_time"] = {"between":[time1.toString(),time2.toString()]};
+    }
+
+	//开始查找c
+    query("tb_succeed_subscribe",where,null,["tb_subscribe"],classlinkwhere,
+        function(ret){
+			var html = "";
+			for(var i = 0;i<ret.length;i++)
+			{
+                html += "<li class='card'><div style='height:75%;width:100%'><div style='float:left;color:#ffffff;height:100%;width:20%'><img src='../../image/subscribe.png'/></div>";
+                html += "<div style='float:left;color:#ffffff;height:100%;width:71%;margin:0 auto;padding:0 0 0 5%'>";
+                html += "<div style='height:19%;width:100%'>申请单号&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["tb_subscribe"]["subscribe_id"] + "</div>";
+                html += "<div style='height:19%;width:100%'>医生ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["tb_subscribe"]["dc_id"] + "</div>";
+                html += "<div style='height:19%;width:100%'>病人ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["tb_subscribe"]["pt_id"] + "</div>";
+                html += "<div style='height:19%;width:100%'>安排时间&nbsp;&nbsp;&nbsp;&nbsp;：" + convertDate(ret[i]["tb_subscribe"]["arrange_time"]) + "</div>";
+                html += "<div style='height:19%;width:100%'>审核结果&nbsp;&nbsp;&nbsp;&nbsp;：" + ret[i]["tb_subscribe"]["arrange_checked"] + "</div></div></div>";
+                html += "<div     style='height:25%;width:100%' id='" + ret[i]["subscribe_id"] + "'>";
+                html += "<div class='divbtn' style='background:rgba(12,243,47,0.5);width:100%;border-radius:0 0 10px 10px;' onclick='subscribeMsg("+'"'+ret[i]["tb_subscribe"]["subscribe_id"]+'","'+ret[i]["tb_subscribe"]["arrange_checked"]+'"'+")'>详情</div>";
+                html += "</div></li>";
+
+				// html += "<li  style='margin:2px;border-radius: 5px;border:1px solid green'>";
+				// html += "<div>医生："+ret[i]["tb_subscribe"]["dc_id"]+"</div>";
+				// html += "<div>病人："+ret[i]["tb_subscribe"]["pt_id"]+"</div>";
+				// html += "<div>会诊安排时间："+ convertDate(ret[i]["tb_subscribe"]["arrange_time"])+"</div>";
+				// html += "<div>审核结果："+ ret[i]["tb_subscribe"]["arrange_checked"]+"</div>";
+				// html += "<button onclick='subscribeMsg("+'"'+ret[i]["tb_subscribe"]["subscribe_id"]+'","'+ret[i]["tb_subscribe"]["arrange_checked"]+'"'+")'>详细信息</button>";//html += "<button onclick='subscribeMsg("+ret[i]+")'>详细信息</button>";
+				// html += "</li>";
+			}
+			$api.byId("arrange_msg").innerHTML = html;
+    	},function(ret){
+	});
+}
+
+//详细信息按钮
+function  subscribeMsg(subscribe_id,arrange_checked)
+{
+    api.openWin({
+        name: 'management_msg',
+        url: 'management_msg.html',
+        pageParam: {
+            subscribe_id:subscribe_id,
+            arrange_checked:arrange_checked,
+        }
+    });
+}
+
+
+//转换日期
+function convertDate(time)
+{
+	var date = new Date(time);
+	Y = date.getFullYear() + '-';
+	M = (date.getMonth() < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+	D = (date.getDate() < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ';
+	h = (date.getHours() < 10 ? '0'+(date.getHours()) : date.getHours()) + ':';
+	m = (date.getMinutes() < 10 ? '0'+(date.getMinutes()) : date.getMinutes()) + ':';
+	s =  date.getSeconds() < 10 ? '0'+(date.getSeconds()) : date.getSeconds();
+	return Y+M+D+h+m+s;
+}
+</script>
+<html>

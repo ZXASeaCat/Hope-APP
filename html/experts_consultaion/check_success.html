@@ -1,0 +1,414 @@
+<!--管理员批准通过申请单后，跳转到选择预约医生的窗口
+    选择一定数量预约医生后，将数据提交到subscribe_success表，
+    并返回通知给申请人
+
+    涉及数据：
+    会诊号：自定义
+    申请单ID：subscribe_id
+    医生群：doctors_id
+    会诊状态：state（“未开始”）
+    会诊人数传参
+-->
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/views.css"/>
+	<style type="text/css">
+        body {
+            background-color: #FFFFFF;
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+        }
+		.insertleft{
+	      float:left;
+	      width:350px;
+	    }
+	    .insertright{
+	      float:right;
+	      width:calc(100% - 350px);
+		  text-align: center;
+	    }
+		button {
+	        background-color:#00FFFF;
+	        color:#FFFFFF;
+	        padding: 0;
+	        text-align: center;
+	        width:20%;
+	        height: 100%;
+	        border: none;
+	        outline: none;
+	        border-radius: 10px;
+            float:left;
+	    }
+        option{
+            margin: 0;
+            padding: 0;
+            width: 150px;
+            height: 40px;
+            font-size: 20px;
+            display: inline-block;
+            border-radius: 10px;
+            padding-top: 10px;
+        }
+		.doctor{
+			margin:2px;
+			border-radius: 5px;
+			border:1px solid green
+		}
+
+        select {
+            width: 25%;
+            margin: 2.5% 3.5%;
+            /*display:inline-block;*/
+            text-align: center;
+            text-align-last: center;
+            background-color: #00FFFF;
+            color: #FFFFFF;
+            border-radius: 10px;
+            float: left;
+            height:60%;
+        }
+
+        .card{
+            height:48%;
+            width:100%;
+            background:-webkit-linear-gradient(left top,rgba(185,217,252,1),rgba(141,195,241,1),rgba(101,94,233,1));
+            box-shadow:4px 2px 4px rgba(63,72,204,1);
+            margin:20px 0 ;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .picdiv {
+            float: left;
+            margin: 2% 0;
+    		width: 100%;
+    		height: 100%;
+    		border-radius:50%;
+    		border: lpx solid red;
+    	}
+    	.picdiv img{
+    		width:80%;
+    		height:auto;
+    		border-radius:50%;
+    		margin:30% 4% 30% 16%;
+    	}
+	</style>
+</head>
+<body>
+    <header class="aui-bar aui-bar-nav" id="header">
+        <div class="aui-pull-left aui-btn" onclick = "closeWin()">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style = "position: absolute; left: 50%; transform: translateX(-50%);">请点击选择预约医生</div>
+    </header>
+    <div id="selectDiv" style="width:100%;height:10%;" >
+        <select style="" id='select-hospital'>
+            <option>-医院-</option>
+			<option>广东医科大学附属医院</option>
+            <option>广州人民医院</option>
+            <option>神山医院</option>
+        </select>
+        <select style="" id='select-major'>
+            <option>-科室-</option>
+			<option>男科</option>
+            <option>妇科</option>
+            <option>外科</option>
+			<option>内科</option>
+            <option>骨科</option>
+        </select>
+        <input readonly="readonly" style="height:60%;margin:2.5% 1%;width:25%;border-radius: 10px;text-align-last: center;border:1px solid green;display:inline-block;" type="text" id="select-time" placeholder="-时间-">
+    </div>
+    <div style="width:100%;height:5%;" >
+		<button onclick="getBookableDoctor()" style="margin: 0 8.25% 0 3.5%;background-color:rgba(122,195,248,1)">查询</button>
+        <button onclick="choose(this)"        style="margin:0 8.25% 0 8.25%;background-color:rgba(246,227,247,1)">选择</button>
+        <button onclick="checkSubscribe()" style="margin: 0 3.5% 0 8.25%;background-color:rgba(255,239,203,1)">提交</button>
+	</div>
+    <ul id="dc_msg" style="overflow:scroll;position:absolute;top:28%;width:94%;height:70%;border:none;margin:2%">
+	</ul>
+</body>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="../../script/hope/jdate.min.js"></script>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../script/aui-dialog.js" ></script>
+<script>
+//此次搜索得到的图片数组
+//目前缓存到的图片数量
+var picArray = [],nowGetpicArray=0,timeInterval,select_doctors=[];
+var hasQuery = false;
+let toast = new auiToast();
+let dialog = new auiDialog();
+//按下选择键后
+function choose(btn){
+    if(!hasQuery)
+        return ;
+    //选择键变成取消键，显示所有checkbox
+    if(btn.innerHTML == "选择")
+    {
+        btn.innerHTML = "取消";
+        btn.style.background = "#EB6100";
+        var doctor_checks = document.getElementsByName("doctor_check");
+        //console.log( doctor_checks.length);
+        for (var i = 0; i < doctor_checks.length; i++) {
+            doctor_checks[i].style.display = "block";
+        }
+    }
+    else
+    {
+        btn.innerHTML = "选择";
+        btn.style.background = "#00FFFF";
+        var doctor_checks = document.getElementsByName("doctor_check");
+        for (var i = 0; i < doctor_checks.length; i++) {
+            doctor_checks[i].checked = false;
+            doctor_checks[i].style.display = "none";
+        }
+    }
+}
+
+//提交前进行检查
+function checkSubscribe(){
+    select_doctors = [];
+    let count=0;
+    var doctor_checks = document.getElementsByName("doctor_check");
+    for (var i = 0; i < doctor_checks.length; i++) {
+        if(doctor_checks[i].checked)
+        {
+            select_doctors.push(doctor_checks[i].id);
+            count++;
+        }
+    }
+    if(count==0)
+    {
+        alert("请选择医生后再提交");
+        return false;
+    }
+
+    dialog.alert({
+        title:"提示",
+        msg:'确定选择好的医生？',
+        buttons:['取消','确定']
+    },function(ret){
+        if(ret.buttonIndex==2){
+            uploadSubscribe();
+        }
+        else{
+            toast.fail({
+                title:"已取消",
+                duration:2000
+            });
+        }
+    })
+    // if(count < api.pageParam.arrange_num)
+    // {
+    //     dialog.alert({
+    //         title:"提示",
+    //         msg:'选中的医生人数不足，确定提交？',
+    //         buttons:['取消','确定']
+    //     },function(ret){
+    //         if(ret.buttonIndex==2){
+    //             uploadSubscribe();
+    //         }
+    //         else{
+    //             toast.fail({
+    //                 title:"已取消",
+    //                 duration:2000
+    //             });
+    //         }
+    //     })
+    // }
+    // else if(count > api.pageParam.arrange_num)
+    // {
+    //     dialog.alert({
+    //         title:"提示",
+    //         msg:'选中的医生人数超过本次安排人数，确定提交？',
+    //         buttons:['取消','确定']
+    //     },function(ret){
+    //         if(ret.buttonIndex==2){
+    //             uploadSubscribe();
+    //         }
+    //         else{
+    //             toast.fail({
+    //                 title:"已取消",
+    //                 duration:2000
+    //             });
+    //         }
+    //     })
+    // }
+    // else {
+    //     uploadSubscribe();
+    // }
+}
+
+function uploadSubscribe(){
+    toast.loading({title:"请稍作等待",duration:60000});
+    let subscribeCount = 0;
+    //更新申请为已审核
+    update("tb_subscribe",{subscribe_id:api.pageParam.subscribe_id},{arrange_checked:"审核通过"},function(ret){subscribeCount++;});
+    //插入一条成功申请
+    insert("tb_succeed_subscribe",{subscribe_id:api.pageParam.subscribe_id,state:"未开始",doctors:select_doctors,consultation_id:api.pageParam.subscribe_id,tb_subscribe:api.pageParam.id},function(ret){subscribeCount++;});
+    //选中的医生的rest-1，用request更新
+    batchUpdate("tb_dcworktime",select_doctors,{"$inc": { rest: -1}},function(ret){subscribeCount++;},function(err){});
+    let interval = setInterval(function(){
+        //console.log(subscribeCount);
+        if(subscribeCount==3){
+            clearInterval(interval);
+            toast.hide();
+            toast.success({
+                title:"已成功处理该申请",
+                html:'<i class="aui-iconfont aui-icon-laud"></i>',
+                duration:2000
+            });
+            //提交后关闭窗口
+            setTimeout(function(){
+                api.closeWin({
+                    name: 'check'
+                });
+                api.closeWin({
+                    name: 'check_success'
+                });
+            },1800);
+        }
+    },1000)
+}
+apiready = function(){
+    //顶部样式
+    $api.fixStatusBar($api.dom('header'));
+    api.setStatusBarStyle({
+        style : 'light',
+        color : '#000'
+    });
+    //$api.byId('select-time').value = api.pageParam.arrange_time;    //将此次会诊安排时间先赋值到时间框
+}
+window.onload = function() {
+	new Jdate({
+		el: '#select-time',
+		format: 'YYYY-MM-DD',
+		beginYear: 2020,
+		endYear: 2100,
+	});
+};
+function closeWin()
+{
+	api.closeWin({
+	    name: 'check_success'
+	});
+}
+
+//查询预约医生
+function getBookableDoctor()
+{
+    hasQuery = true;
+	$api.byId("dc_msg").innerHTML = "";
+	//确定查询条件
+    var select_time = $api.byId("select-time").value;
+    var select_hospital = $api.byId("select-hospital").value;
+    var select_major = $api.byId("select-major").value;
+    var where = {};
+    where["rest"] = {"gt":0};//医生可预约剩余人数大于0
+    if(select_time != "")
+    {
+		//时间段
+		var time1 = new Date(select_time + " 00:00:00");
+		var time2 = new Date(select_time + " 23:59:59");
+        where["worktime"] = {"between":[time1.toString(),time2.toString()]};
+    }
+    if(select_hospital != "-医院-")
+    {
+        where["hospital"] = select_hospital;
+    }
+    if(select_major != "-科室-")
+    {
+        where["major"] = select_major;
+    }
+    //开始查找      ////////////rest不能为0，查询条件
+    query("tb_dcworktime",where,null,["tb_dcinformation"],null,
+        function(ret){
+            //先缓存所有图片
+            picArray = [].concat(new Array(ret.length).fill(""))
+            nowGetPicCount = 0;
+            for(var i = 0;i<ret.length;i++)
+			{
+                let index = i;
+                api.imageCache({
+                    policy:"no_cache",
+                    url: ret[index]["tb_dcinformation"]["dc_tx"],
+                    thumbnail:true
+                    }, function(ret, err) {
+                        picArray[index] = ret["url"];
+                        nowGetPicCount++;
+                });
+            }
+            //再依次显示每个医生的预约时间段
+            timeInterval = setInterval(function(){
+                if(nowGetPicCount == ret.length)
+                {
+                    clearInterval(timeInterval);
+                    var html = "";
+                    for(var i = 0;i<ret.length;i++)
+        			{
+                        let name = ret[i]["tb_dcinformation"]["name"];
+                        let dc_sex = ret[i]["tb_dcinformation"]["dc_sex"];
+                        let hospital = ret[i]["tb_dcinformation"]["hospital"];
+                        let major = ret[i]["tb_dcinformation"]["major"];
+                        let dc_professional = ret[i]["tb_dcinformation"]["dc_professional"];
+                        let dc_field = ret[i]["tb_dcinformation"]["dc_field"];
+                        let dc_id = ret[i]["dc_id"];
+                        let worktime = ret[i]["worktime"];
+                        let worktimeend = ret[i]["worktimeend"];
+                        let rest = ret[i]["rest"];
+                        let dc_tx = picArray[i];
+                        html += "<li class='card' ><div style='height:100%;width:100%'><div style='float:left;color:#ffffff;height:100%;width:20%;'>";
+                        html += "<div style='width:100%;height:50%;border-radius:10px'><div class='picdiv'><img src='"+dc_tx+"' /></div></div>";
+                        html += '<div style="width:100%;height:50%;;border-radius:10px"><input type="checkbox" class="aui-checkbox" name="doctor_check" style = "display:none;float:left;margin:30px auto;" id="'+ret[i]["id"]+'"></div>';
+                        //html += '<input type="checkbox" class="aui-checkbox" name="doctor_check" style = "display:none;float:left;margin:30px auto;" id="'+ret[i]["id"]+'">';
+    					html += "</div><div style='float:left;color:#ffffff;height:100%;width:71%;margin:0 auto;padding:0 0 0 5%'>";
+    					html += "<div style='height:11%;width:100%'>姓名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + name + "</div>";
+                        html += "<div style='height:11%;width:100%'>性别&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + dc_sex + "</div>";
+                        html += "<div style='height:11%;width:100%'>医生ID&nbsp;&nbsp;&nbsp;&nbsp;：" + dc_id + "</div>";
+                        html += "<div style='height:11%;width:100%'>医院&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + hospital + "</div>";
+                        html += "<div style='height:11%;width:100%'>科室&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + major + "</div>";
+                        html += "<div style='height:11%;width:100%'>职位&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + dc_professional + "</div>";
+                        //html += "<div style='height:14%;width:100%' style='height:auto;'>领域&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：" + dc_field + "</div>";
+                        html += "<div style='height:22%;width:100%' style='height:auto;'>可预约时间：" + convertDate(worktime)+" 至 "+ convertDate(worktimeend) + "</div>";
+
+
+                        html += "<div style='height:11%;width:100%'>剩余可预约人数：" + rest + "</div></div></div>";
+                    }
+                    $api.byId("dc_msg").innerHTML += html;
+                }
+            },1000)
+    	},function(ret){});
+}
+
+function oncheck()
+{
+    if(this.checked)
+        this.checked = false;
+    else
+        this.checked = true;
+}
+
+//转换日期
+function convertDate(time) {
+    let date = new Date(time);
+    Y = date.getFullYear() + '-';
+    M = (date.getMonth() < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+    D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate()) + ' ';
+    h = (date.getHours() < 10 ? '0' + (date.getHours()) : date.getHours()) + ':';
+    m = (date.getMinutes() < 10 ? '0' + (date.getMinutes()) : date.getMinutes()) + ':';
+    s = date.getSeconds() < 10 ? '0' + (date.getSeconds()) : date.getSeconds();
+    return Y + M + D + h + m + s;
+}
+
+</script>
+</html>

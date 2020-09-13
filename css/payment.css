@@ -1,0 +1,341 @@
+.car_number{
+	width: 100%;
+	height: 38px;
+	margin-top: 15px;
+	line-height: 38px;
+	border-top: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+	font-size: 14px;
+}
+.car_number label{
+	margin-left: 15px;
+}
+.car_number a{
+	float: right;
+	margin-right: 15px;
+}
+.car_explain{
+	clear: both;
+	height: 50px;
+	width: 100%;
+	overflow: hidden;
+	text-align: center;;
+}
+.car_explain p{
+	height: 24px;
+	line-height: 24px;
+	width: 100%;
+	overflow: hidden;
+	font-size: 12px;
+	margin-top: 23px;
+}
+.car_match{
+	clear: both;
+	overflow: hidden;
+	width: 100%;
+}
+.car_match li{
+	width: 100%;
+	height: 38px;
+	line-height: 38px;
+	border-top: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+	font-size: 14px;
+	clear: both;
+}
+.car_match li:last-child{
+	border-top: none;
+}
+.car_match li label{
+	margin-left: 15px;
+}
+.car_match li  a{
+	float: right;
+	margin-right: 15px;
+}
+.car_sur{
+	width: 90%;
+	margin: 25px auto 0;
+	clear: both;
+	height: 40px;
+	line-height: 40px;
+	text-align: center;
+	font-size: 15px;
+}
+.wrap_footer{
+	width: 100%;
+	position: fixed;
+	height: 60px;
+	border-top: 1px solid #ccc;
+	left: 0;
+	bottom: 0;
+}
+.wrap_footer li{
+	width: 25%;
+	height: 60px;
+	float: left;
+	font-size: 10px;
+	text-align: center;
+}
+.wrap_footer li a{
+	width: 100%;
+	height: 100%;
+	display: block;
+	padding-top: 45px;
+	position: relative;
+}
+.wrap_footer li a:hover{
+	color: #3f85e4;
+	text-decoration: none;
+}
+.wrap_footer li a:focus{
+	color: #3f85e4;
+	text-decoration: none;
+}
+.wrap_footer .wrap_footer_bg1{
+	background: url(../images/car_order.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg1:hover{
+	background: url(../images/car_order_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg1:focus{
+	background: url(../images/car_order_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg2{
+	background: url(../images/pay_ico.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg2:hover{
+	background: url(../images/pay_ico_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg2:focus{
+	background: url(../images/pay_ico_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg3{
+	background: url(../images/search_car.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg3:hover{
+	background: url(../images/search_car_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg3:focus{
+	background: url(../images/search_car_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg4{
+	background: url(../images/set_ico.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg4:hover{
+	background: url(../images/set_ico_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+.wrap_footer .wrap_footer_bg4:focus{
+	background: url(../images/set_ico_on.png) center 10px no-repeat;
+	background-size: 30px;	
+}
+/*费用查询结果*/
+.payment_result_title{
+	width: 100%;
+	height: 150px;
+	overflow: hidden;
+}
+.payment_result_title img{
+	width: 100%;
+	height: 100%;
+}
+.payment_result_center{
+	width: 100%;
+}
+.payment_result_center li{
+	width: 100%;
+	clear: both;
+	height: 40px;
+	line-height: 40px;
+	overflow: hidden;
+	border-bottom: 1px solid #ccc;
+}
+.payment_result_center li label{
+	margin-left: 15px;
+}
+.payment_result_center li span{
+	float: right;
+	margin-right: 15px;
+}
+.wrap .hgt-1{
+	height: 55px;
+	line-height: 55px;
+}
+.rescan_top{
+	width: 100%;
+	height: 257px;
+	overflow: hidden;
+	background: url(../images/rescan_ico.png) center 95px no-repeat;
+	background-size: 69px 50px;
+}
+.rescan_top_text{
+	width: 100%;
+	height: 92px;
+	overflow: hidden;
+	margin-top: 160px;
+	text-align: center;
+}
+.rescan_top_text p{
+	height: 24px;
+	font-size: 14px;
+	line-height: 24px;	
+}
+/*payment_time*/
+.payment_time{
+	width: 100%;
+}
+.payment_time_title{
+	width: 100%;
+	height: 40px;
+	line-height: 40px;
+	overflow: hidden;
+	font-size: 14px;
+}
+.payment_time_title label{
+	margin-left: 15px;
+}
+.payment_time_title span{
+	float: right;
+	margin-right: 15px;
+	color: #999;
+}
+.payment_time_mask{
+	display: none;
+}
+.payment_time_list{
+	width: 94%;
+	margin: 0 auto;
+}
+.payment_time_list li{
+	width: 44%;
+	height: 140px;
+	float: left;
+	margin: 10px 3%;
+}
+.payment_time_list span{
+	height: 105px;
+	display: block;
+}
+.payment_time_list em{
+	height: 35px;
+	display: block;
+	text-align: center;
+	line-height: 35px;
+	overflow: hidden;
+	font-size: 14px;
+}
+.payment_time_list span a img{
+	width: 100%;
+	height: 100%;
+}
+.payment_time_mask{
+	z-index: 999;
+	width: 90%;
+	height: 272px;
+	position: absolute;
+	left: 5%;
+	top: 115px;
+	border-radius: 10px;
+	overflow: hidden;
+	text-align: center;
+}
+.payment_time_mask li{
+	height: 38px;
+	line-height: 38px;
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+}
+#bg{
+	background-color:#000;
+	position:fixed;
+	z-index:99;
+	left:0;
+	top:0;
+	display:none;
+	width:100%;
+	height:100%;
+	opacity:0.3;
+	filter: alpha(opacity=30);
+	-moz-opacity: 0.3;
+}
+/*payment_expense*/
+.payment_expense{
+	width: 100%;
+}
+.payment_expense li{
+	height: 60px;
+	width: 100%;
+	overflow: hidden;
+	border-bottom: 1px solid #ccc;
+	line-height: 60px;
+}
+.payment_expense_list{
+	width: 100%;
+	clear: both;
+	height: 60px;
+	font-size: 14px;
+}
+.payment_expense_list_left{
+	float: left;
+	margin-left: 15px;
+	line-height: 30px;
+}
+.payment_expense_list_right{
+	float: right;
+	margin-right: 15px;
+}
+/*payment_detials*/
+.payment_detials{
+	width: 100%;
+}
+.payment_detials li{
+	width: 100%;
+	height: 40px;
+	line-height: 40px;
+	clear: both;
+	border-bottom: 1px solid #ccc;
+	font-size: 14px;
+}
+.payment_detials li label{
+	margin-left: 15px;
+}
+.payment_detials li span{
+	float: right;
+	margin-right: 15px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

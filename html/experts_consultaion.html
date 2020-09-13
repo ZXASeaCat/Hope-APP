@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/views.css"/>
+<style>
+</style>
+</head>
+<body>
+    <!--<div class="views-searchbar ">
+        <div class="views-searchbar-input views-border-radius" tapmode="" onclick="doSearch()">
+            <i class="views-iconfont views-icon-search"></i>
+        </div>
+    </div>-->
+    <div class="aui-card-list" style = "margin:2% 0%">
+      <div style="padding:1.5% 0px 1.5% 4.5%;">
+          专栏
+      </div>
+      <div class="aui-card-list-content">
+          <ul class="aui-list aui-media-list">
+              <li class="aui-list-item aui-list-item-middle"  onclick = "openNewWin('subscribe')">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                          <i class="aui-iconfont aui-icon-paper" style="font-size:35px;margin:0px auto;"></i>
+                      </div>
+                      <div class="aui-list-item-inner aui-list-item-arrow">
+                          发起会诊
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item aui-list-item-middle"  onclick = "openNewWin('management')">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                          <i class="aui-iconfont aui-icon-calendar" style="margin:0px auto;font-size:35px;"></i>
+                      </div>
+                      <div class="aui-list-item-inner aui-list-item-arrow">
+                          <div class="aui-list-item-text">
+                              <div class="aui-list-item-title aui-font-size-14">已预约管理</div>
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item aui-list-item-middle"  onclick = "openNewWin('check')">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                          <i class="views-iconfont views-icon-calendar-check" style="margin:0px auto;font-size:35px;"></i>
+                      </div>
+                      <div class="aui-list-item-inner aui-list-item-arrow">
+                          <div class="aui-list-item-text">
+                              <div class="aui-list-item-title aui-font-size-14">预约审查（管理员）</div>
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item aui-list-item-middle"  onclick = "openNewWin('upload')">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                          <i class="aui-iconfont aui-icon-my" style="margin:0px auto;font-size:35px;"></i>
+                      </div>
+                      <div class="aui-list-item-inner aui-list-item-arrow">
+                          <div class="aui-list-item-text">
+                              <div class="aui-list-item-title aui-font-size-14">上传病人资料</div>
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item aui-list-item-middle"  onclick = "openNewWin('guidang')">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                          <i class="aui-iconfont aui-icon-mail" style="margin:0px auto;font-size:35px;"></i>
+                      </div>
+                      <div class="aui-list-item-inner aui-list-item-arrow">
+                          <div class="aui-list-item-text">
+                              <div class="aui-list-item-title aui-font-size-14">归档会诊意见</div>
+                          </div>
+                      </div>
+                  </div>
+              </li>
+          </ul>
+      </div>
+    </div>
+    <div class="aui-card-list">
+      <div style="padding:1.5% 0px 1.5% 4.5%;">
+          消息通知
+      </div>
+      <div class="aui-card-list-content">
+          <ul class="aui-list aui-media-list">
+              <li class="aui-list-item aui-list-item-middle">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                        <i class="views-iconfont views-icon-comment" style="font-size:35px;margin:0px auto;"></i>
+                      </div>
+                      <div class="aui-list-item-inner">
+                          <div class="aui-list-item-text">
+                              <div class="aui-list-item-title aui-font-size-14">即将进行会诊：肾透支</div>
+                              <div class="aui-list-item-right">上午08:00</div>
+                          </div>
+                          <div class="aui-list-item-text">
+                              会诊时间：2020/9/14 15：30-16：50
+                          </div>
+                          <div class="aui-list-item-text">
+                              已报名参加会诊人数：2人
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item aui-list-item-middle">
+                  <div class="aui-media-list-item-inner">
+                      <div class="aui-list-item-media" style="width: 3rem;">
+                        <i class="views-iconfont views-icon-comment" style="font-size:35px;margin:0px auto;"></i>
+                      </div>
+                      <div class="aui-list-item-inner">
+                          <div class="aui-list-item-text">
+                              <div class="aui-list-item-title aui-font-size-14">预约通知：报名肾透支会诊成功</div>
+                              <div class="aui-list-item-right">2020/9/2</div>
+                          </div>
+                      </div>
+                  </div>
+              </li>
+          </ul>
+      </div>
+      <!--<div class="aui-card-list-footer aui-text-center">
+          查看更多
+      </div>-->
+    </div>
+</body>
+<script type="text/javascript">
+    apiready = function(){
+
+    };
+    function openNewWin(winName)
+    {
+        api.openWin({
+            name: winName,
+            url: 'experts_consultaion/'+winName+'.html',
+        });
+
+    }
+</script>
+</html>

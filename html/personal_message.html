@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../css/views.css">
+    <style>
+        .picdiv {
+            width: 125px;
+            height: 125px;
+            border-radius: 50%;
+            border: lpx solid red;
+            display: inline;
+        }
+
+        .picdiv img {
+            width: 125px;
+            height: 125px;
+            border-radius: 50%;
+        }
+
+        .lm {
+            width: 30%;
+            height: 100px;
+            float: left;
+            display: inline;
+            margin: 0% 20% 0% 0%
+        }
+
+        .rm {
+            float: left;
+            width: calc(100% - 100px);
+            height: 100px;
+            margin-left: 10px;
+            display: inline;
+        }
+
+        .rm .mm {
+            height: 50px;
+            line-height: 50px;
+        }
+    </style>
+</head>
+
+<body style="background-image:url(../image/personbg.jpg)">
+    <div style="width:30%;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+    <div style="width:120px;margin:5% auto;">
+        <div class='picdiv'>
+            <img id="imgBlog" src="" onclick="setTx()">
+        </div>
+    </div>
+    <div class="views-content" style="margin:15px 0 0 0;">
+        <ul class="views-list">
+            <!--<li class="views-list-item" style="height:15%;padding: 1% 8% 1% 8%">
+                        <div class='lm'>
+                            <div class='picdiv'><img id="imgBlog" src="" onclick="setTx()" ></div>
+                        </div>
+                        <div class='rm'>
+                            <div class='mm'>jieke</div>
+                            <div class='mm'>000001</div>
+                        </div>
+                </li>-->
+            <li class="views-list-item" style="border-radius:10px;">
+                <div class="views-list-item-inner">
+                    <div id='dc_id' class="views-list-item-title">医生ID： </div>
+                </div>
+            </li>
+            <li class="views-list-item">
+                <div class="views-list-item-inner">
+                    <div id='name' class="views-list-item-title">姓名： </div>
+                </div>
+            </li>
+            <li class="views-list-item">
+                <div class="views-list-item-inner">
+                    <div id='tel' class="views-list-item-title">手机电话：</div>
+                </div>
+            </li>
+            <li class="views-list-item">
+                <div class="views-list-item-inner">
+                    <div id='hospital' class="views-list-item-title">所属医院：</div>
+                </div>
+            </li>
+            <li class="views-list-item">
+                <div class="views-list-item-inner">
+                    <div id='major' class="views-list-item-title">所属科室：</div>
+                </div>
+            </li>
+            <li class="views-list-item" style="border-radius:10px;">
+                <div class="views-list-item-inner">
+                    <div id='dc_professional' class="views-list-item-title">职位： </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <!--</div>-->
+    <div style="margin:4% auto 20px auto;text-align:center;width:85%;" onclick="setConsultation()">
+        <div class="views-btn views-btn-primary" style="font-size:20px;padding-top:5px;height:40px;border-radius:10px">&ensp;&ensp;设置预约时间&ensp;&ensp;</div>
+    </div>
+    <div style="margin:0% auto 20px auto;text-align:center;width:85%;" onclick="exit()">
+        <div class="views-btn views-btn-primary" style="font-size:20px;padding-top:5px;height:40px;border-radius:10px">&ensp;&ensp;&ensp;&ensp;退出登录&ensp;&ensp;&ensp;&ensp;</div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/hope/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="../script/aui-dialog.js" ></script>
+<script type="text/javascript">
+    window.onload = function() {
+        $api.byId("imgBlog").src = $api.getStorage('local_dc_tx');
+        var returnParams = ["name", "dc_id", 'tel', "hospital", "major", "dc_professional"];
+        for (var n = 0; n < returnParams.length; n++)
+            $api.byId(returnParams[n]).innerHTML += $api.getStorage(returnParams[n]);
+    }
+
+    function setTx() {
+        //用户登录后返回的信息和头像，头像要api.cache缓存，存进setstorage，姓名性别什么的也要
+        var imgSrc = $api.byId("imgBlog").src;
+        api.openWin({
+            name: 'setTx',
+            url: 'setTx.html',
+            pageParam: {
+                imgSrc: imgSrc
+            }
+        });
+    }
+
+    function setConsultation() {
+        api.openWin({
+            name: 'setConsultation',
+            url: 'setConsultation.html',
+        });
+    }
+    function exit()
+    {
+        let dialog = new auiDialog();
+        dialog.alert({
+            title:"提示",
+            msg:'确定退出登录吗',
+            buttons:['取消','确定']
+        },function(ret){
+            if(ret.buttonIndex==2){
+                $api.rmStorage('AutoLoginUserId');
+                api.openWin({
+                    name: 'mylogin',
+                    url: 'mylogin.html',
+                });
+            }
+            else{
+            }
+        })
+    }
+</script>
+
+</html>

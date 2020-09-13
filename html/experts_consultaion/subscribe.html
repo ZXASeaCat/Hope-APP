@@ -1,0 +1,672 @@
+<!--此页面功能实现：
+    将申请单数据插入表tb_subscribe
+
+审核申请列表(tb_subscribe)
+subscribe_id        申请单ID                    值： 申请人医生ID+Date.now()
+dc_id               申请人医生ID
+pt_id               病人ID
+hospital            医院
+major               主科/科室
+arrange_time        初诊时间
+arrange_num         参加会诊人数（除开申请人）
+arrange_checked     审核状态                    值：“未审核”
+purpose             会诊目的。
+expect_time1        期望时段(申请人期望得到会诊的时间段)
+expect_time2        期望时段
+
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="../../css/global.css" />    <!--时间选择器css-->
+    <link rel="stylesheet" type="text/css" href="../../css/aui.css" />
+    <style>
+        @media(max-width: 360px) {
+            .form-control {
+                font-size: 10px;
+                padding: 0 5px;
+            }
+        }
+        @media(max-width: 320px) {
+            .col-xs-6 {
+                padding: 0 5px;
+            }
+        }
+        input[type=text]{
+          border: none;
+        }
+        /*图片*/
+        img{
+            position: relative;
+        }
+        .float{
+        float:left;
+        width : 100;
+        height: 100;
+        overflow: hidden;
+        border: 1px solid #CCCCCC;
+        border-radius: 10px;
+        padding: 5px;
+        margin: 5px;
+        }
+        .result{
+            width: 100px;
+            height: 100px;
+            box-sizing: border-box;
+            display: none;
+        }
+        /*放大图片*/
+        .imgmask{
+            display: none;
+            top: 0;
+            right: 0;
+            bottom: 0;
+
+            z-index: 200;
+            background: rgba(0,0,0,.5);
+        }
+        .bigImg{
+        }
+    </style>
+</head>
+<body>
+    <header id = "header" class="aui-bar aui-bar-nav">
+        <div class="aui-pull-left aui-btn" onclick = "javascript:api.closeWin({name: 'subscribe'});">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </div>
+        <div style = "position: absolute; left: 50%; transform: translateX(-50%);">申请会诊</div>
+    </header>
+    <ul class="aui-list aui-form-list">
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          患者病号：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <input id="pt_id" type="text" style="border:none" placeholder="病人ID">
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          申请人工号：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <input id="dc_id" type="text" style="border:none" placeholder="申请人ID" readonly>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          所在医院：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <input id="hospital" type="text" style="border:none" placeholder="医院" readonly>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          科室：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <input id="major" type="text" style="border:none" placeholder="科室" readonly>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item"  style="height:200px">
+                  <div class="aui-list-item-inner" >
+                      <div class="aui-list-item-label" style="width:300px;">
+                          会诊目的：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <textarea  id="purpose" style="width:300px;height:180px;border:solid 2px #0ee; border-radius:5px; " maxlength="150" placeholder="会诊目的（限于150字内）"></textarea>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          会诊人数：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <input id="arrange_num" type="text" placeholder="请求专家人数"  style="border:none" oninput="value=value.replace(/[^\d]/g,'')">
+                      </div>
+                  </div>
+              </li>
+              <!--初次会诊时间冒号被掩盖-->
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          初次会诊时间：
+                      </div>
+                      <div id="date-group-div" class="aui-list-item-input" style="width:300px;">
+                          <div   class="col-xs-6">
+                              <input onclick = "closeKeyboard()" class="form-control" id="date-group" type="text" readonly  placeholder="初次会诊安排时间">    <!--时间选择器class，保留-->
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                          期望时间：
+                      </div>
+                      <div class="aui-list-item-input">
+                          <div class="col-xs-6" style="text-align:center">
+                              <input onclick = "closeKeyboard()" readonly class="form-control" id="expect_time1" type="text" placeholder="时间段">至    <!--时间选择器class，保留-->
+                              <input onclick = "closeKeyboard()" readonly class="form-control" id="expect_time2" type="text" placeholder="时间段">    <!--时间选择器class，保留-->
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner">
+                      <div class="aui-list-item-label">
+                        上传患者资料：
+                      </div>
+                      <div id = "uploadButton" class="aui-list-item-input" style="width:150px;text-align:center;padding-left:40px;padding-right:60px">
+                          <div class="float">
+                              <div class="result" style="width: 45px;height: 45px;padding:1px 1px 1px 1px">
+                                  <img style="width: 45px;height: 45px;" id="addImage" src="../../image/experts_consultaion/addImage.png" onclick="zengjiaImage()"/>
+                              </div>
+                          </div>
+                          <div class="float" style="float:right">
+                              <div class="result" style="width: 45px;height: 45px;padding:1px 1px 1px 1px">
+                                  <img style="width: 45px;height: 45px;" id="deleteImage" src="../../image/experts_consultaion/deleteImage.png" onclick="shanchuImage()"/>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-input" id="containter"></div>
+              </li>
+              <li class="aui-list-item">
+                  <div class="aui-list-item-inner aui-list-item-center aui-list-item-btn">
+                      <div class="aui-btn aui-btn-info aui-margin-r-5" onclick = "subscribe()">提交</div>
+                      <div class="aui-btn aui-btn-danger aui-margin-l-5" onclick = "javascript:api.closeWin({name: 'subscribe'});">取消</div>
+                  </div>
+              </li>
+    </ul>
+    <!--图片遮罩层-->
+    <div class="imgmask" id="imgmask" style = "width:100%;height:100%;position:fixed;" onclick="disappear()">
+    <img src="" alt="" class="bigImg" id="bigImg"></div>
+    <!--时间选择器遮罩层-->
+    <div class="mask-time" style="display:none"></div><!--遮罩层class，保留-->
+    <div class="time-area" style="display:none;touch-action:none"><!--时间选择表格class，保留-->
+    	<input type="hidden" name="date_" value="">
+    	<input type="hidden" name="time_">
+    	<div class="box-date">
+    		<ul class="promptu-menu2 font13"></ul>
+    	</div>
+    	<div class="time-choose-table font13 txt-gray" id="time-choose-table"></div>
+    	<div class="font11 txt-light-gray txt-small" style="display:none"> 提示：该段时间不可选择，最长可预约7天内的服务时间。</div>
+    	<input type="button" value="确定选择" class="am-btn btn-default am-btn-green mt-line btn-choose-time" style='width:94.668%;margin-top:0px'>
+    </div>
+</body>
+<script type="text/javascript" src="../../script/hope/RESTAPI.js"></script>
+<script type="text/javascript" src="../../script/hope/SHA1.js"></script>
+<script type="text/javascript" src="../../script/hope/jquery.min.js"></script>
+<script type="text/javascript" src="../../script/hope/jdate.min.js"></script>
+<script type="text/javascript" src="../../script/hope/databaseUse.js"></script>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/aui-toast.js"></script>
+<script type="text/javascript" src="../../script/aui-dialog.js" ></script>
+<script type="text/javascript" src="../../script/zoom.js"></script>
+<script type="text/javascript" >
+//上传图片成功次数，判定图片全部上传成功的定时器，需要上传的图片集合
+var ajaxCount=0,timeInterval,imgarr = [];
+//上传数据
+var pt_id,dc_id,hospita,major,purpose,arrange_num,arrange_time,expect_time1,expect_time2,fileArray = [];
+//模块
+var UIAlbumBrowser;
+var dialog = new auiDialog();
+apiready = function(){
+    $api.fixStatusBar($api.byId('header'));
+    UIAlbumBrowser = api.require('UIAlbumBrowser');
+};
+let toast = new auiToast();
+//申请人ID号自动赋值
+//增加三个时间选择器
+//渲染图片增加删除按钮
+window.onload = function(){
+    $("#purpose").width(window.screen.width*0.65);
+    $("#date-group-div").width(window.screen.width*0.6);
+    $("#uploadButton").width(window.screen.width*0.49);
+    $("#dc_id").attr("value",$api.getStorage("dc_id"));
+    $("#hospital").attr("value",$api.getStorage("hospital"));
+    $("#major").attr("value",$api.getStorage("major"));
+    document.getElementById('addImage').onload = btnCSS(document.getElementById('addImage'));
+    document.getElementById('deleteImage').onload = btnCSS(document.getElementById('deleteImage'));
+
+    new Jdate({
+        el: '#date-group',
+        format: 'YYYY-MM-DD hh:mm',
+        beginYear: 2020,
+        endYear: 2100,
+        init: function(){
+            var activename=document.activeElement;
+            activename.blur();
+        },
+        confirm: function(date) {
+            var d = new Date(),
+                d1 = new Date(date.replace(/\-/g, "\/")),
+                d2 = new Date(d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()+ '/' + " " + d.getHours()+ ':' + d.getMinutes()); //如果非'YYYY-MM-DD'格式，需要另做调整
+            if (d1 < d2) {
+                dialog.alert({
+                    title:"提示",
+                    msg:'不能小于当前的时间',
+                    buttons:['确定']
+                })
+                return false;
+            }
+        }
+    });
+    new Jdate({
+        el: '#expect_time1',
+        format: 'YYYY-MM-DD hh:mm',
+        beginYear: 2020,
+        endYear: 2100,
+        init: function(){
+            var activename=document.activeElement;
+            activename.blur();
+        },
+        confirm: function(date) {
+            var d = new Date(),
+                d1 = new Date(date.replace(/\-/g, "\/")),
+                d2 = new Date(d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()+ '/' + " " + d.getHours()+ ':' + d.getMinutes()); //如果非'YYYY-MM-DD'格式，需要另做调整
+            if (d1 < d2) {
+                dialog.alert({
+                    title:"提示",
+                    msg:'不能小于当前的时间',
+                    buttons:['确定']
+                })
+                return false;
+            }
+        }
+    });
+    new Jdate({
+        el: '#expect_time2',
+        format: 'YYYY-MM-DD hh:mm',
+        beginYear: 2020,
+        endYear: 2100,
+        init: function(){
+            var activename=document.activeElement;
+            activename.blur();
+        },
+        confirm: function(date) {
+            var d = new Date(),
+                d1 = new Date(date.replace(/\-/g, "\/")),
+                d2 = new Date(d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()+ '/' + " " + d.getHours()+ ':' + d.getMinutes()); //如果非'YYYY-MM-DD'格式，需要另做调整
+            if (d1 < d2) {
+                dialog.alert({
+                    title:"提示",
+                    msg:'不能小于当前的时间',
+                    buttons:['确定']
+                })
+                return false;
+            }
+        }
+    });
+}
+
+
+//渲染图片增加删除按钮
+function btnCSS(ThisPic){
+    var nowHeight;
+    var RePicWidth = 50;
+    var TrueWidth = ThisPic.width;
+    var TrueHeight = ThisPic.height;
+    if(TrueWidth>TrueHeight){
+        var reWidth = RePicWidth;
+        ThisPic.width = reWidth;
+        nowHeight = TrueHeight * (reWidth/TrueWidth);
+    }else{
+        var reHeight = RePicWidth;
+        ThisPic.height = reHeight;
+    }
+    ThisPic.parentNode.style.display = 'block';
+    var oParent = ThisPic.parentNode;
+    if(nowHeight){
+        oParent.style.paddingTop = (oParent.offsetHeight - nowHeight)/2 + 'px';
+    }
+    else {
+        oParent.style.paddingLeft = (oParent.offsetHeight - this.width)/2 + 'px';
+    }
+}
+
+
+//提交申请单，需要增加图片内容
+//先上传图片，再提交申请单
+function subscribe(){
+    pt_id = $("#pt_id").val();
+    dc_id = $("#dc_id").val();
+    hospital = $("#hospital").val();
+    major = $("#major").val();
+    purpose = $("#purpose").val();
+    arrange_num = $("#arrange_num").val();
+    arrange_time = new Date($("#date-group").val()).toString();
+    expect_time1 = new Date($("#expect_time1").val()).toString();
+    expect_time2 = new Date($("#expect_time2").val()).toString();
+    //判断数据是否为空
+    if(pt_id.trim() =="" || purpose.trim() =="" || expect_time1.trim() =="" || expect_time2.trim() =="" || arrange_time.trim() =="" || arrange_num.trim() =="")
+    {
+        dialog.alert({
+            title:"提示",
+            msg:'请填写完整信息',
+            buttons:['确定']
+        });
+        return false;
+    }
+    //期望时间段1要小于期望时间段2
+    if(new Date(expect_time1)>new Date(expect_time2))
+    {
+        dialog.alert({
+            title:"提示",
+            msg:'期望时间设置错误',
+            buttons:['确定']
+        });
+        return false;
+    }
+    isUserExist("pt_id","message",function(isExist){
+        if(!isExist){
+            dialog.alert({
+                title:"查询无该患者",
+                msg:'请输入正确的患者ID',
+                buttons:['确定']
+            });
+            return false;
+        }
+        else{
+            //提交数据
+            fileUpload();
+        }
+    });
+}
+//将图片批量上传到数据库
+function fileUpload(){
+    toast.loading({title:"图片上传中",duration:60000});
+    var client = new Resource();
+    var File = client.Factory("file");
+    //将所有文件提交到file表
+    for(var n = 0;n<imgarr.length;n++)
+    {
+        File.save({file:{
+            isFile:true,
+            path:imgarr[n].path,        //文件路径
+            values:{filename:imgarr[n].path.substr((imgarr[n].path).lastIndexOf('/')+1)}   //文件名
+        }},function(ret,err){
+            //所有图片上传到云数据库后，返回其数据库存储位置
+            fileArray.push(ret.url);
+            ajaxCount++;
+        });
+    }
+    //确定文件都提交成功后
+    timeInterval = setInterval(function(){
+        if(ajaxCount == imgarr.length)
+        {
+            toast.hide();
+            toast.loading({title:"申请提交中",duration:60000});
+            clearInterval(timeInterval);
+            //插入申请单数据
+            //这里申请单ID为 : 医生ID+时间字符串
+            insert("tb_subscribe",
+            {
+                subscribe_id:dc_id+'-'+Date.now(),
+                pt_id:pt_id,
+                dc_id:dc_id,
+                hospital:hospital,
+                major:major,
+                purpose:purpose,
+                arrange_num:arrange_num,
+                arrange_time:arrange_time,
+                expect_time1:expect_time1,
+                expect_time2:expect_time2,
+                arrange_checked:"未审核",
+                data_picture:fileArray
+            },
+                function(ret){
+                    toast.hide();
+                    toast.success({
+                        title:"提交申请成功",
+                        html:'<i class="aui-iconfont aui-icon-laud"></i>',
+                        duration:2000
+                    });
+                    //提交后关闭窗口
+                    setTimeout(function () {
+                        api.closeWin({
+                            name: 'subscribe'
+                        });
+                    },1800);
+                });
+        }
+    },1500)
+}
+
+//打开图片选择器，并把选择的图片显示到预览框
+function zengjiaImage(){
+    UIAlbumBrowser.imagePicker({
+        max: 9,
+        styles: {
+            bg: '#FFFFFF',
+            //cameraImg: 'widget://res/cameraImg.png',
+            mark: {
+                position: 'top_right',
+                size: 20
+            },
+            nav: {
+                bg: '#FFFFFF',
+                cancelColor: '#000000',
+                cancelSize: 16,
+                nextStepColor: '#000000',
+                nextStepSize: 16
+            },
+            thumbnail: { //（可选项）返回的缩略图配置，**建议本图片不要设置过大** 若已有缩略图，则使用已有的缩略图。若要重新生成缩略图，可先调用清除缓存接口api.clearCache()。
+                w: 100, //（可选项）数字类型；返回的缩略图的宽；默认：原图的宽度
+                h: 100 //（可选项）数字类型；返回的缩略图的宽；默认：原图的高度
+            }
+        },
+        animation: true,
+    }, function(ret) {
+        if (ret.eventType == 'nextStep') {
+            if (ret.list && ret.list.length > 0) {
+                imgarr = imgarr.concat(ret.list)
+            }
+            UIAlbumBrowser.closePicker();
+            var containterdiv = document.getElementById('containter');
+            for(var n = 0;n<ret.list.length;n++)
+            {
+                addImg(document.getElementById('containter'),ret.list[n].path);
+            }
+        }
+        if (ret.originalPath && ret.originalPath.length > 0) {
+            addImg(document.getElementById('containter'),ret.originalPath);
+        }
+    });
+}
+//删除图片列表中的最后一个文件
+function shanchuImage(){
+    var index = imgarr.length-1;
+    var el = document.getElementById("containter");
+    if(imgarr.length>0)
+    {
+        el.removeChild(el.childNodes[index]);
+        imgarr.splice(index,1);
+    }
+}
+
+function addImg(element,path){
+    var imgdiv;
+    var containterdiv = element;
+    imgdiv = document.createElement('div');
+    imgdiv.innerHTML = '<div class="result" onclick="enlargePic(this)"><img src="'+path+'" alt=""/></div>';
+    imgdiv['className'] = 'float';
+    imgdiv.getElementsByTagName('img')[0].onload = function(){
+        var nowHeight = ReSizePic(this); //设置图片大小
+        this.parentNode.style.display = 'block';
+        var oParent = this.parentNode;
+        if(nowHeight){
+            //长图垂直居中
+            oParent.style.paddingTop = (oParent.offsetHeight - nowHeight)/2 + 'px';
+        }
+        else {
+            //长图水平居中
+            oParent.style.paddingLeft = (oParent.offsetHeight - this.width)/2 + 'px';
+        }
+    }
+    containterdiv.appendChild(imgdiv);
+}
+//指定图片尺寸
+function ReSizePic(ThisPic) {
+    var RePicWidth = 100; //这里修改为您想显示的宽度值
+
+    var TrueWidth = ThisPic.width; //图片实际宽度
+    var TrueHeight = ThisPic.height; //图片实际高度
+    if(TrueWidth>TrueHeight){
+        //宽大于高
+        var reWidth = RePicWidth;
+        ThisPic.width = reWidth;
+        //垂直居中
+        var nowHeight = TrueHeight * (reWidth/TrueWidth);
+        return nowHeight;  //将图片修改后的高度返回，供垂直居中用
+    }else{
+        //宽小于高
+        var reHeight = RePicWidth;
+        ThisPic.height = reHeight;
+    }
+}
+
+//点击查看放大图片
+function enlargePic(thisDiv){
+    $('#imgmask').css('height',window.screen.height);
+    $('#imgmask').css('width',window.screen.width);
+    var img = document.createElement('img');
+    img.src = thisDiv.childNodes[0].src;
+    img.onclick = function(e){
+        var e = window.event || e;
+        if (e.stopPropagation) e.stopPropagation();
+        else e.cancelBubble = true;
+    };
+    document.getElementById('imgmask').appendChild(locateCenterPic(img));
+    document.getElementById("imgmask").style.display = "block";
+
+
+    //增加双指旋转放大缩放事件
+    var box = img;
+    var boxGesture=setGesture(box);  //得到一个对象
+    boxGesture.gesturestart=function(){  //双指开始
+    };
+    boxGesture.gesturemove=function(e){  //双指移动
+        box.innerHTML = e.scale+"<br />"+e.rotation;
+        box.style.transform="scale("+e.scale+") rotate("+e.rotation+"deg)";//改变目标元素的大小和角度
+    };
+    boxGesture.gestureend=function(){  //双指结束
+        box.innerHTML="";
+    };
+}
+//使图片放大后处于屏幕中间
+function locateCenterPic(ThisPic){
+    var RePicWidth = window.screen.width/2; //这里修改为您想显示的宽度值
+    var TrueWidth = ThisPic.width; //图片实际宽度
+    var TrueHeight = ThisPic.height; //图片实际高度
+    //宽大于高
+    if(TrueWidth>TrueHeight){
+        RePicWidth = window.screen.width;
+        ThisPic.width = RePicWidth;
+        ThisPic.height = TrueHeight * (RePicWidth/TrueWidth);
+    }//宽小于高
+    else{
+        ThisPic.width = RePicWidth;
+        ThisPic.height = TrueHeight * (RePicWidth/TrueWidth);
+    }
+    var leftmargin = (window.screen.width - ThisPic.width)/2;
+    var topmargin = (window.screen.height - ThisPic.height)/2;
+    ThisPic.style.top = topmargin+"px";
+    ThisPic.style.left = leftmargin+"px";
+    return ThisPic;
+}
+//取消查看图片
+function disappear(){
+    document.getElementById('imgmask').style.display = "none";
+    document.getElementById('imgmask').innerHTML = "";
+    //document.removeEventListener("mousemove", myFunction);
+}
+
+
+//监听用户输入的患者ID是否存在
+function isUserExist(ptId,warningID,callback){
+    var pt_id = "";//为了使该变量的类型变成string
+    pt_id = document.getElementById(ptId).value;
+    //判断输入是否空白
+    if(pt_id.replace(/\s*/g,"") != "")
+    {
+        query("tb_patient",
+        {"pt_id":pt_id},
+        ["pt_id"],
+        null,
+        null,
+        function (ret) {
+            callback(true);
+        },
+        function (ret) {
+            callback(false);
+        });
+    }
+}
+//关闭键盘，原理是使当前焦点所在的input控件失去焦点
+//已经写成匿名函数，放进jdate初始化接口里面了
+function closeKeyboard(){
+    var activename=document.activeElement;
+    activename.blur();
+}
+//双指运动事件
+function setGesture(el){
+    var obj={}; //定义一个对象
+    var istouch=false;
+    var start=[];
+    el.addEventListener("touchstart",function(e){
+        if(e.touches.length>=2){  //判断是否有两个点在屏幕上
+            istouch=true;
+            start=e.touches;  //得到第一组两个点
+            obj.gesturestart&&obj.gesturestart.call(el); //执行gesturestart方法
+        };
+    },{ passive: false });
+    el.addEventListener("touchmove",function(e){
+        e.preventDefault();
+        if(e.touches.length>=2&&istouch){
+            var now=e.touches;  //得到第二组两个点
+            var scale=getDistance(now[0],now[1])/getDistance(start[0],start[1]); //得到缩放比例，getDistance是勾股定理的一个方法
+            var rotation=getAngle(now[0],now[1])-getAngle(start[0],start[1]);  //得到旋转角度，getAngle是得到夹角的一个方法
+            e.scale=scale.toFixed(2);
+            e.rotation=rotation.toFixed(2);
+            obj.gesturemove&&obj.gesturemove.call(el,e);  //执行gesturemove方法
+        };
+    },{ passive: false });
+    el.addEventListener("touchend",function(e){
+        if(istouch){
+            istouch=false;
+            obj.gestureend&&obj.gestureend.call(el);  //执行gestureend方法
+        };
+    },{ passive: false });
+    return obj;
+};
+
+function getDistance(p1, p2) {
+    var x = p2.pageX - p1.pageX,
+        y = p2.pageY - p1.pageY;
+    return Math.sqrt((x * x) + (y * y));
+};
+
+function getAngle(p1, p2) {
+    var x = p1.pageX - p2.pageX,
+        y = p1.pageY- p2.pageY;
+    return Math.atan2(y, x) * 180 / Math.PI;
+};
+</script>
+</html>
