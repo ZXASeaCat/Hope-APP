@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--  引入ECharts3,JQuery,socketio -->
+<head>
+	<meta charset="UTF-8">
+    <title>Echarts实现心电图效果</title>
+	<script type="text/javascript" src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/1.5.1/socket.io.min.js"></script>
+    <script src="https://cdn.bootcss.com/echarts/3.7.1/echarts.js"></script>
+</head>
+<body style="background-color:#000000">
+	<div id="chartArray">
+	</div>
+</body>
+<script type="text/javascript">
+	//	初始化心电图，横轴为长达8s的x轴，纵轴数据都为0
+	////////////////////////	附注    //////////////////////
+	//	+new Date()中不要使用'2020-01-01T00:00:00.000Z'这种格式
+	//	'2020-01-01T00:00:00' → 1577808000000
+	//	'2020-01-01T00:00:00.000Z' → 1577836800000
+	var startTime = +new Date('2020-01-01T00:00:00')
+    var initYAxisData=[];    
+	var xxx = ['-0.065', '-0.065', '-0.065', '-0.065', '-0.065', '-0.065', '-0.065', '-0.065', '-0.080', '-0.080', '-0.085', '-0.085', '-0.075', '-0.070', '-0.070', '-0.065', '-0.055', '-0.050', '-0.050', '-0.040', '-0.040', '-0.055', '-0.075', '-0.080', '-0.085', '-0.070', '-0.080', '-0.080', '-0.090', '-0.095', '-0.090', '-0.095', '-0.110', '-0.120', '-0.145', '-0.135', '-0.105', '-0.095', '-0.105', '-0.120', '-0.135', '-0.125', '-0.125', '-0.115', '-0.115', '-0.125', '-0.140', '-0.140', '-0.130', '-0.125', '-0.140', '-0.145', '-0.150', '-0.150', '-0.130', '-0.115', '-0.125', '-0.135', '-0.160', '-0.195', '-0.200', '-0.205', '-0.225', '-0.255', '-0.300', '-0.290', '-0.235', '-0.130', '-0.035', '0.050', '0.120', '0.200', '0.310', '0.435', '0.535', '0.580', '0.475', '0.210', '-0.085', '-0.230', '-0.250', '-0.215', '-0.180', '-0.185', '-0.160', '-0.150', '-0.150', '-0.180', '-0.180', '-0.160', '-0.165', '-0.170', '-0.165', '-0.185', '-0.185', '-0.185', '-0.170', '-0.160', '-0.155', '-0.175', '-0.195', '-0.185', '-0.185', '-0.175', '-0.175', '-0.195', '-0.190', '-0.180', '-0.165', '-0.170', '-0.170', '-0.170', '-0.190', '-0.185', '-0.180', '-0.170', '-0.175', '-0.190', '-0.200', '-0.195', '-0.185', '-0.170', '-0.170', '-0.185', '-0.195',
+'-0.175', '-0.200', '-0.185', '-0.180', '-0.185', '-0.205', '-0.190', '-0.180', '-0.185', '-0.200', '-0.215', '-0.205', '-0.210', '-0.200', '-0.185', '-0.205', '-0.200', '-0.210', '-0.205', '-0.185', '-0.185', '-0.200', '-0.215', '-0.225', '-0.220', '-0.200', '-0.200', '-0.215', '-0.225', '-0.235', '-0.245', '-0.240', '-0.240', '-0.240', '-0.245', '-0.260', '-0.260', '-0.265', '-0.265', '-0.280', '-0.285', '-0.295', '-0.295', '-0.300', '-0.290', '-0.300', '-0.315', '-0.315', '-0.315', '-0.315', '-0.310', '-0.310', '-0.325', '-0.330', '-0.325', '-0.315', '-0.305', '-0.305', '-0.290', '-0.290', '-0.275', '-0.270', '-0.245', '-0.240', '-0.250', '-0.250', '-0.235', '-0.220', '-0.195',
+'-0.190', '-0.190', '-0.190', '-0.180', '-0.160', '-0.145', '-0.150', '-0.160', '-0.160', '-0.155', '-0.145', '-0.140', '-0.160', '-0.150', '-0.175', '-0.170', '-0.160', '-0.160', '-0.150', '-0.155', '-0.160', '-0.170', '-0.155', '-0.155', '-0.150', '-0.165', '-0.175', '-0.165', '-0.165', '-0.160', '-0.160', '-0.180', '-0.175', '-0.185', '-0.165', '-0.150', '-0.150', '-0.170', '-0.185', '-0.195', '-0.190', '-0.190', '-0.185', '-0.190', '-0.210', '-0.195', '-0.190', '-0.180', '-0.205', '-0.215', '-0.225', '-0.210', '-0.205', '-0.195', '-0.200', '-0.195', '-0.210', '-0.215', '-0.205', '-0.185', '-0.195', '-0.195', '-0.220', '-0.220', '-0.210', '-0.215', '-0.220', '-0.220', '-0.225',
+'-0.210', '-0.200', '-0.210', '-0.225', '-0.230', '-0.225', '-0.220', '-0.230', '-0.210', '-0.215', '-0.215', '-0.230', '-0.215', '-0.220', '-0.205', '-0.205', '-0.210', '-0.215', '-0.225', '-0.215', '-0.215', '-0.215', '-0.225', '-0.225', '-0.225', '-0.205', '-0.195', '-0.210', '-0.210', '-0.215', '-0.235', '-0.230', '-0.220', '-0.220', '-0.230', '-0.225', '-0.230', '-0.215', '-0.195', '-0.195', '-0.190', '-0.200', '-0.195', '-0.180', '-0.170', '-0.180', '-0.175', '-0.195', '-0.195', '-0.170', '-0.175', '-0.175', '-0.180', '-0.185', '-0.185', '-0.175', '-0.175', '-0.175', '-0.190', '-0.205', '-0.200', '-0.205', '-0.205', '-0.215', '-0.215', '-0.225', '-0.215', '-0.210', '-0.200',
+'-0.215', '-0.225', '-0.245', '-0.245', '-0.250', '-0.225', '-0.230', '-0.235', '-0.240', '-0.235', '-0.235', '-0.220', '-0.230', '-0.240', '-0.240', '-0.245', '-0.225', '-0.225', '-0.235', '-0.250', '-0.270', '-0.280', '-0.290', '-0.300', '-0.330', '-0.360', '-0.355', '-0.305', '-0.205', '-0.080', '0.015', '0.065', '0.115', '0.190', '0.300', '0.410', '0.495', '0.485', '0.360', '0.105', '-0.165', '-0.350', '-0.450', '-0.470', '-0.450', '-0.395', '-0.345', '-0.310', '-0.295', '-0.285', '-0.295', '-0.295', '-0.280', '-0.285', '-0.285', '-0.285', '-0.290', '-0.275', '-0.275', '-0.275', '-0.270', '-0.285', '-0.295', '-0.290', '-0.275', '-0.265', '-0.265', '-0.275'];
+	for(let i=1;i<401;i++){
+		initYAxisData.unshift([(startTime-3*i),xxx[i]]);//乘以20，即每个时间点间隔3ms，可以随意改动
+	}
+	// 心电图数组
+	var chartArray = [];
+	// 心电图数组对应的心电图数据，导联最多有12条
+	var yAxisData = new Array(12); 
+	for(let i=0;i<yAxisData.length;i++)
+	{
+		yAxisData[i] = new Array(); 
+	}
+	// 心电图父样式
+	var totalFlowRateOption = {
+		backgroundColor: '#000000',
+		animation:false,
+		title: {
+			text: '病人监测数据',
+			textStyle:{
+				fontSize: 18,
+				fontWeight: 'bolder',
+				color: '#ffffff'
+			},
+		},
+		tooltip: {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'cross'
+			}
+		},
+		grid: {
+			left: 50/*"50px"*/,
+			right: 15/*"15px"*/,
+		},
+		legend: {
+			data:['当前心电压'],
+			textStyle:{color:"#66b3ff"}/*图例(legend)说明文字的颜色*/
+		},
+		//x轴
+		xAxis: {
+			boundaryGap: false,
+			type:'time',
+			axisLine: {             //坐标轴线
+				show: true,         
+				lineStyle: {        
+					color: '#000000',
+					width: 2,
+					type: 'solid'
+				}
+			},
+			axisLabel: {           // 坐标轴文本标签，详见axis.axisLabel
+				show: true,
+				rotate: 0,
+				margin: 8,
+				// formatter: null,
+				textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+					color: '#ffffff'
+				}
+			},
+			splitLine:{				//网格线
+				lineStyle: { color: '#FF0000'},
+				show: true
+			}
+		  
+      },
+		//y轴
+		yAxis: {
+			type:'value',
+			boundaryGap:false,
+			boundaryGap: ['100%', '100%'],
+			axisLine: {             //坐标轴线
+				show: true,         
+				lineStyle: {        
+					color: '#000000',
+					width: 2,
+					type: 'solid'
+				}
+			},
+			axisLabel: {           // 坐标轴文本标签，详见axis.axisLabel
+				show: true,
+				rotate: 0,
+				margin: 8,
+				// formatter: null,
+				textStyle: {       // 其余属性默认使用全局文本样式，详见TEXTSTYLE
+					color: '#ffffff'
+				}
+			},
+			splitLine:{				//网格线
+				lineStyle: { color: '#FF0000'},
+				show: true
+			}
+		},
+		series: {
+			itemStyle : {
+				normal : {
+					lineStyle:{
+						color:'#FFFF00'/*折线的颜色*/
+					},
+					color:"#66b3ff"/*图例(legend)的颜色,不是图例说明文字的颜色*/
+				}
+			},
+			/*areaStyle: {normal: {
+			  color: new echarts.graphic.LinearGradient(
+				0, 0, 0, 1,
+				[
+				  {offset: 0, color: '#66b3ff'},
+				/* {offset: 0.5, color: '#c4e1ff'},*/
+			/*      {offset: 1, color: '#ecf5ff'}
+				]
+			  )
+			}},*/
+			symbol:"none",/*去掉小圆点*/
+			name: '当前心电压',
+			type: 'line',
+			data: initYAxisData/*,
+			smooth:true//显示为平滑的曲线*/
+		}
+    };
+	
+
+	//每次得到的数据数量
+	var getData =[]
+	//每次得到的数据数量
+	var getDataCount = 1000
+	//目前绘制的数据的下标
+	var index = 0;
+	//客户端选择病人id和数据日期
+	var choose_pt_id = "00001";
+	var choose_dataDate = "20200101";
+	//对应的数据表名字和导联字段
+	var ecg_table = '';
+	var fields = '';
+	var socket;
+	//根据病人心电数据有多少导联，建立多个心电图div
+	function buildChart()
+	{
+		let len = initYAxisData.length;
+		for(let i = 0;i<fields.length;i++)
+		{
+			$("#chartArray").append('<div id="totalFlowRate' + i + '"style="height:300px;"></div>'); 
+			chartArray[i] = echarts.init(document.getElementById('totalFlowRate'+i));
+			yAxisData[i] = initYAxisData.slice(0, len);
+			//每个导联再改一下属于自己的样式
+			let totalOwnerOption = JSON.parse(JSON.stringify(totalFlowRateOption));   //深拷贝，但有点弊端
+			totalOwnerOption["title"]["text"] =fields[i];
+			chartArray[i].setOption(totalOwnerOption);
+		}
+	}
+
+	function drawChart()
+	{
+		for(let i = 0;i<fields.length;i++)
+		{
+			yAxisData[i].push([getData["patientData"][index]["Elapsed time"],getData["patientData"][index][fields[i]]]);
+        	yAxisData[i].shift();
+			//console.log(getData["patientData"][index]["Elapsed time"]);
+        	chartArray[i].setOption({
+				series: [{
+					data: yAxisData[i]
+				}]
+			});
+		}
+		//永远保持60帧，一帧=1/60s=16.7msz，提供的数据一秒有360帧，只能减少绘制数据
+		index ++;
+		//console.log("STEP5:requestAnimationFrame");
+		if(index<getDataCount)
+			requestAnimationFrame(drawChart);
+		//绘画完大量数据,再请求服务器发送一批数据
+		//else里面的代码本来要放在203行的“ drawChart(); ”后面，但因为异步机制只能放在此处
+		else
+		{
+			//console.log("STEP6:index=0");
+			index = 0;
+			//console.log("STEP7:emit-getECGData");
+			socket.emit('getECGData',{ecg_table:ecg_table});
+		}
+     }
+
+
+	 $(document).ready(function() {
+		//建立socket连接，等待服务器“推送”数据，用回调函数重置index和getData，更新图表，然后再次请求数据
+		//？？？？连接失败怎么处理
+        let namespace = '/ecgdata';
+        socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+		console.log(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+		//发送消息，需要得知选择的病人的心电图有哪些导联
+		socket.emit('getECGInfo',{pt_id:choose_pt_id,date:choose_dataDate});
+		//接受消息，知道有哪些导联后画出对应的div心电图，再请求服务器发送数据
+		socket.on('patientECGInfo', function(res) {
+			ecg_table = res["ecg_table"];
+			fields = res["fields"];
+			buildChart();
+			//console.log("STEP1:buildChart");
+			socket.emit('getECGData',{ecg_table:ecg_table});
+			//console.log("STEP2:emit-getECGData");
+		});
+		//接受消息，将得到的数据绘画到心电图上
+		socket.on('patientECGData',function(ecgData) {
+			//console.log("STEP3:getData赋值");		
+			getData = ecgData;
+			//console.log("STEP4:drawChart");
+			drawChart();
+		});
+    });
+</script>
+</html>
